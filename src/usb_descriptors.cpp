@@ -179,7 +179,7 @@ constexpr auto audio_device_descriptor_interface_alternate_generator(uint8_t itf
         /* Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) */
         TUD_AUDIO_DESC_CS_AS_ISO_EP(/*_attr*/ AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, /*_ctrl*/ AUDIO_CTRL_NONE, /*_lockdelayunit*/ lockdelayunit, /*_lockdelay*/ lockdelay),
         /* Standard AS Isochronous Feedback Endpoint Descriptor(4.10.2.1) */
-        TUD_AUDIO_DESC_STD_AS_ISO_FB_EP(/*_ep*/ epfb, /*_interval*/ 0x01) };
+        TUD_AUDIO_DESC_STD_AS_ISO_FB_EP(/*_ep*/ epfb, TUD_AUDIO_DESC_STD_AS_ISO_FB_EP_LEN, /*_interval*/ 0x01) };
 }
 
 constexpr auto audio_device_descriptor_output_interface_generator(uint8_t itf, uint8_t itfname, uint8_t termid, uint8_t epout, uint8_t epoutfb)
