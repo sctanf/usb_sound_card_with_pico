@@ -106,23 +106,15 @@ extern const unsigned long tud_audio_headset_stereo_desc_len;
 #define CFG_TUD_AUDIO_FUNC_1_DESC_LEN             tud_audio_headset_stereo_desc_len
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
-#define CFG_TUD_AUDIO_ENABLE_EP_IN                1
-
-#define CFG_TUD_AUDIO_FUNC_1_EP_SZ_IN             TUD_AUDIO_EP_SIZE(96000, 4, 2)
-
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX         CFG_TUD_AUDIO_FUNC_1_EP_SZ_IN // Maximum EP IN size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ      CFG_TUD_AUDIO_FUNC_1_EP_SZ_IN+1
-
-// EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_OUT               1
 
-#define CFG_TUD_AUDIO_FUNC_1_EP_SZ_OUT            TUD_AUDIO_EP_SIZE(96000, 4, 2)
+#define CFG_TUD_AUDIO_FUNC_1_EP_SZ_OUT            TUD_AUDIO_EP_SIZE(48000, 3, 6)
 
 #define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX        CFG_TUD_AUDIO_FUNC_1_EP_SZ_OUT // Maximum EP IN size for all AS alternate settings used
 #define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ     CFG_TUD_AUDIO_FUNC_1_EP_SZ_OUT+1
 
 // Number of Standard AS Interface Descriptors (4.9.1) defined per audio function - this is required to be able to remember the current alternate settings of these interfaces - We restrict us here to have a constant number for all audio functions (which means this has to be the maximum number of AS interfaces an audio function has and a second audio function with less AS interfaces just wastes a few bytes)
-#define CFG_TUD_AUDIO_FUNC_1_N_AS_INT 	          4
+#define CFG_TUD_AUDIO_FUNC_1_N_AS_INT 	          2
 
 // Size of control request buffer
 #define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ	      64

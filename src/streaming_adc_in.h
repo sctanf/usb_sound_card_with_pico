@@ -24,7 +24,7 @@ namespace streaming
 
             uint8_t    clk_pio_program_offset;
             uint8_t    clk_pio;
-            uint8_t    clk_sm;            
+            uint8_t    clk_sm;
         };
 
         void init(const init_config&);

@@ -25,7 +25,6 @@ char const *string_desc_arr[] ={
         "Pico Audio",               // 2: Product
         "000001",                   // 3: Serials, should use chip ID
         "Pico Audio Speakers",      // 4: Audio Interface
-        "Pico Audio LineIn",        // 5: Audio Interface
         "Pico Audio Control",       // 6: Audio Interface 
         "Debug Serial Port"
 };
@@ -35,7 +34,6 @@ enum DESCRIPTOR_STRING {
     STR_PRODUCT,
     STR_SERIAL,
     STR_AUDIO_INTERFACE0,
-    STR_AUDIO_INTERFACE1,
     STR_AUDIO_INTERFACE2,
     STR_DEBUG_INTERFACE,
 };
@@ -120,58 +118,36 @@ descriptor(U...) -> descriptor<sizeof...(U)>;
 
 #if USB_IF_AUDIO_ENABLE
 
-#define TUD_AUDIO_DESC_SELECTOR_TWO_LEN (8 + 1)
-#define TUD_AUDIO_DESC_SELECTOR_TWO(_unitid, _src1, _src2, _ctrl, _stridx) \
-    TUD_AUDIO_DESC_SELECTOR_TWO_LEN, TUSB_DESC_CS_INTERFACE, AUDIO_CS_AC_INTERFACE_SELECTOR_UNIT, _unitid, 2, _src1, src_2, _ctrl, _stridx
-
-#define TUD_AUDIO_DESC_MIXER_STEREO_TWO_PINS_LEN (13 + 2 + 1)
-#define TUD_AUDIO_DESC_MIXER_STEREO_TWO_PINS(_unitid, _src1, _src2, _idxchannelnames, _mixerctrl, _ctrl, _stridx) \
-    TUD_AUDIO_DESC_MIXER_STEREO_TWO_PINS_LEN, TUSB_DESC_CS_INTERFACE, AUDIO_CS_AC_INTERFACE_MIXER_UNIT, _unitid, 2, _src1, _src2, 2, U32_TO_U8S_LE(AUDIO_CHANNEL_CONFIG_FRONT_LEFT | AUDIO_CHANNEL_CONFIG_FRONT_RIGHT), _idxchannelnames, _mixerctrl, _ctrl, _stridx
-
 constexpr auto audio_device_descriptor_units_generator()
 {
     return descriptor{
         /* Clock Source Descriptor(4.7.2.1) */
         TUD_AUDIO_DESC_CLK_SRC(/*_clkid*/ UAC2_ENTITY_USB_INPUT_CLOCK, /*_attr*/ AUDIO_CLOCK_SOURCE_ATT_INT_PRO_CLK, /*_ctrl*/ (AUDIO_CTRL_RW << AUDIO_CLOCK_SOURCE_CTRL_CLK_FRQ_POS), /*_assocTerm*/ 0x00, /*_stridx*/ STR_NULL),
-        /* Clock Source Descriptor(4.7.2.1) */
-        TUD_AUDIO_DESC_CLK_SRC(/*_clkid*/ UAC2_ENTITY_LINEIN_CLOCK, /*_attr*/ AUDIO_CLOCK_SOURCE_ATT_INT_PRO_CLK, /*_ctrl*/ (AUDIO_CTRL_RW << AUDIO_CLOCK_SOURCE_CTRL_CLK_FRQ_POS), /*_assocTerm*/ 0x00, /*_stridx*/ STR_NULL),
 
         /* Input Terminal Descriptor(4.7.2.4) */
-        TUD_AUDIO_DESC_INPUT_TERM(/*_termid*/ UAC2_ENTITY_USB_INPUT_TERMINAL, /*_termtype*/ AUDIO_TERM_TYPE_USB_STREAMING, /*_assocTerm*/ 0x00, /*_clkid*/ UAC2_ENTITY_USB_INPUT_CLOCK, /*_nchannelslogical*/ 0x02, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_FRONT_LEFT | AUDIO_CHANNEL_CONFIG_FRONT_RIGHT, /*_idxchannelnames*/ 0x00, /*_ctrl*/ 0, /*_stridx*/ STR_NULL),
+        TUD_AUDIO_DESC_INPUT_TERM(/*_termid*/ UAC2_ENTITY_USB_INPUT_TERMINAL, /*_termtype*/ AUDIO_TERM_TYPE_USB_STREAMING, /*_assocTerm*/ 0x00, /*_clkid*/ UAC2_ENTITY_USB_INPUT_CLOCK, /*_nchannelslogical*/ 0x06, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_FRONT_LEFT | AUDIO_CHANNEL_CONFIG_FRONT_RIGHT | AUDIO_CHANNEL_CONFIG_FRONT_CENTER | AUDIO_CHANNEL_CONFIG_LOW_FRQ_EFFECTS | AUDIO_CHANNEL_CONFIG_BACK_LEFT | AUDIO_CHANNEL_CONFIG_BACK_RIGHT, /*_idxchannelnames*/ 0x00, /*_ctrl*/ 0, /*_stridx*/ STR_NULL),
         /* Output Terminal Descriptor(4.7.2.5) */
         TUD_AUDIO_DESC_OUTPUT_TERM(/*_termid*/ UAC2_ENTITY_SPEAKER_OUTPUT_TERMINAL, /*_termtype*/ AUDIO_TERM_TYPE_OUT_GENERIC_SPEAKER, /*_assocTerm*/ 0x00, /*_srcid*/ UAC2_ENTITY_USB_INPUT_TERMINAL, /*_clkid*/ UAC2_ENTITY_USB_INPUT_CLOCK, /*_ctrl*/ 0x0000, /*_stridx*/ STR_NULL),
-
-        /* Input Terminal Descriptor(4.7.2.4) */
-        TUD_AUDIO_DESC_INPUT_TERM(/*_termid*/ UAC2_ENTITY_LINEIN_INPUT_TERMINAL, /*_termtype*/ AUDIO_TERM_TYPE_EXTERNAL_LINE, /*_assocTerm*/ 0x00, /*_clkid*/ UAC2_ENTITY_LINEIN_CLOCK, /*_nchannelslogical*/ 0x02, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_FRONT_LEFT | AUDIO_CHANNEL_CONFIG_FRONT_RIGHT, /*_idxchannelnames*/ 0x00, /*_ctrl*/ 0, /*_stridx*/ STR_NULL),
-        /* Output Terminal Descriptor(4.7.2.5) */
-        TUD_AUDIO_DESC_OUTPUT_TERM(/*_termid*/ UAC2_ENTITY_LINEIN_OUTPUT_TERMINAL, /*_termtype*/ AUDIO_TERM_TYPE_USB_STREAMING, /*_assocTerm*/ 0x00, /*_srcid*/ UAC2_ENTITY_LINEIN_INPUT_TERMINAL, /*_clkid*/ UAC2_ENTITY_LINEIN_CLOCK, /*_ctrl*/ 0x0000, /*_stridx*/ STR_NULL),
     };
-}
-
-constexpr auto audio_device_descriptor_interface_alternate_generator(uint8_t itf, uint8_t altset, uint8_t itfname, uint8_t termid, uint8_t channels, uint8_t subslotsize, uint8_t bitresolution, uint8_t ep, uint8_t epAttr, uint16_t maxEPsize, uint8_t lockdelayunit, uint16_t lockdelay)
-{
-    return descriptor{
-        /* Standard AS Interface Descriptor(4.9.1) */
-        /* Interface 2, Alternate 1 - alternate interface for data streaming */
-        TUD_AUDIO_DESC_STD_AS_INT(/*_itfnum*/ (uint8_t)(itf), /*_altset*/ altset, /*_nEPs*/ 0x01, /*_stridx*/ itfname),
-        /* Class-Specific AS Interface Descriptor(4.9.2) */
-        TUD_AUDIO_DESC_CS_AS_INT(/*_termid*/ termid, /*_ctrl*/ AUDIO_CTRL_NONE, /*_formattype*/ AUDIO_FORMAT_TYPE_I, /*_formats*/ AUDIO_DATA_FORMAT_TYPE_I_PCM, /*_nchannelsphysical*/ channels, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, /*_stridx*/ STR_NULL),
-        /* Type I Format Type Descriptor(2.3.1.6 - Audio Formats) */
-        TUD_AUDIO_DESC_TYPE_I_FORMAT(subslotsize, bitresolution),
-        /* Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) */
-        TUD_AUDIO_DESC_STD_AS_ISO_EP(/*_ep*/ ep, /*_attr*/ epAttr, /*_maxEPsize*/ maxEPsize, /*_interval*/ 0x01),
-        /* Class-Specific AS Isochronous Audio Data Endpoint Descriptor(4.10.1.2) */
-        TUD_AUDIO_DESC_CS_AS_ISO_EP(/*_attr*/ AUDIO_CS_AS_ISO_DATA_EP_ATT_NON_MAX_PACKETS_OK, /*_ctrl*/ AUDIO_CTRL_NONE, /*_lockdelayunit*/ lockdelayunit, /*_lockdelay*/ lockdelay)};
 }
 
 constexpr auto audio_device_descriptor_interface_alternate_generator(uint8_t itf, uint8_t altset, uint8_t itfname, uint8_t termid, uint8_t channels, uint8_t subslotsize, uint8_t bitresolution, uint8_t ep, uint8_t epAttr, uint16_t maxEPsize, uint8_t lockdelayunit, uint16_t lockdelay, uint8_t epfb)
 {
+    uint32_t channel_config = AUDIO_CHANNEL_CONFIG_NON_PREDEFINED;
+    switch (channels){
+    case 6:
+        channel_config |= AUDIO_CHANNEL_CONFIG_FRONT_CENTER | AUDIO_CHANNEL_CONFIG_LOW_FRQ_EFFECTS;
+    case 4:
+        channel_config |= AUDIO_CHANNEL_CONFIG_BACK_LEFT | AUDIO_CHANNEL_CONFIG_BACK_RIGHT;
+    default:
+        channel_config |= AUDIO_CHANNEL_CONFIG_FRONT_LEFT | AUDIO_CHANNEL_CONFIG_FRONT_RIGHT;
+    }
     return descriptor{
         /* Standard AS Interface Descriptor(4.9.1) */
         /* Interface 2, Alternate 1 - alternate interface for data streaming */
         TUD_AUDIO_DESC_STD_AS_INT(/*_itfnum*/ (uint8_t)(itf), /*_altset*/ altset, /*_nEPs*/ 0x02, /*_stridx*/ itfname),
         /* Class-Specific AS Interface Descriptor(4.9.2) */
-        TUD_AUDIO_DESC_CS_AS_INT(/*_termid*/ termid, /*_ctrl*/ AUDIO_CTRL_NONE, /*_formattype*/ AUDIO_FORMAT_TYPE_I, /*_formats*/ AUDIO_DATA_FORMAT_TYPE_I_PCM, /*_nchannelsphysical*/ channels, /*_channelcfg*/ AUDIO_CHANNEL_CONFIG_NON_PREDEFINED, /*_stridx*/ STR_NULL),
+        TUD_AUDIO_DESC_CS_AS_INT(/*_termid*/ termid, /*_ctrl*/ AUDIO_CTRL_NONE, /*_formattype*/ AUDIO_FORMAT_TYPE_I, /*_formats*/ AUDIO_DATA_FORMAT_TYPE_I_PCM, /*_nchannelsphysical*/ channels, /*_channelcfg*/ channel_config, /*_stridx*/ STR_NULL),
         /* Type I Format Type Descriptor(2.3.1.6 - Audio Formats) */
         TUD_AUDIO_DESC_TYPE_I_FORMAT(subslotsize, bitresolution),
         /* Standard AS Isochronous Audio Data Endpoint Descriptor(4.10.1.1) */
@@ -191,26 +167,17 @@ constexpr auto audio_device_descriptor_output_interface_generator(uint8_t itf, u
                /* Interface 2, Alternate 0 - default alternate setting with 0 bandwidth */
                TUD_AUDIO_DESC_STD_AS_INT(/*_itfnum*/ (uint8_t)(itf), /*_altset*/ 0x00, /*_nEPs*/ 0x00, /*_stridx*/ itfname),
            } 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x01, itfname, termid, 2, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb) 
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x01, itfname, termid, 2, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
            + audio_device_descriptor_interface_alternate_generator(itf, 0x02, itfname, termid, 2, 3, 24, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 3, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x03, itfname, termid, 2, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(96000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb) 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x04, itfname, termid, 2, 3, 24, epout, epAttr, TUD_AUDIO_EP_SIZE(96000, 3, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x03, itfname, termid, 4, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 2, 4), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x04, itfname, termid, 4, 3, 24, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 3, 4), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x05, itfname, termid, 6, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 2, 6), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x06, itfname, termid, 6, 3, 24, epout, epAttr, TUD_AUDIO_EP_SIZE(48000, 3, 6), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x07, itfname, termid, 2, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(96000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x08, itfname, termid, 2, 3, 24, epout, epAttr, TUD_AUDIO_EP_SIZE(96000, 3, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           + audio_device_descriptor_interface_alternate_generator(itf, 0x09, itfname, termid, 4, 2, 16, epout, epAttr, TUD_AUDIO_EP_SIZE(96000, 2, 4), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0, epoutfb)
+           /* 96k, 16b, 6ch, is 1164 bytes.. */
            ;
-}
-
-constexpr auto audio_device_descriptor_input_interface_generator(uint8_t itf, uint8_t itfname, uint8_t termid, uint8_t epin)
-{
-    const uint8_t epAttr = (TUSB_XFER_ISOCHRONOUS | TUSB_ISO_EP_ATT_ASYNCHRONOUS | TUSB_ISO_EP_ATT_DATA);
-
-    return descriptor{
-               /* Standard AS Interface Descriptor(4.9.1) */
-               /* Interface 2, Alternate 0 - default alternate setting with 0 bandwidth */
-               TUD_AUDIO_DESC_STD_AS_INT(/*_itfnum*/ (uint8_t)(itf), /*_altset*/ 0x00, /*_nEPs*/ 0x00, /*_stridx*/ itfname),
-           } 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x01, itfname, termid, 2, 2, 16, epin, epAttr, TUD_AUDIO_EP_SIZE(48000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0) 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x02, itfname, termid, 2, 3, 24, epin, epAttr, TUD_AUDIO_EP_SIZE(48000, 3, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0) 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x03, itfname, termid, 2, 2, 16, epin, epAttr, TUD_AUDIO_EP_SIZE(96000, 2, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0) 
-           + audio_device_descriptor_interface_alternate_generator(itf, 0x04, itfname, termid, 2, 3, 24, epin, epAttr, TUD_AUDIO_EP_SIZE(96000, 3, 2), AUDIO_CS_AS_ISO_DATA_EP_LOCK_DELAY_UNIT_UNDEFINED, 0);
 }
 
 constexpr auto audio_device_descriptor_generator()
@@ -225,8 +192,7 @@ constexpr auto audio_device_descriptor_generator()
 
            + audio_device_descriptor_units_generator()
 
-           + audio_device_descriptor_output_interface_generator((uint8_t)(ITF_NUM_AUDIO_STREAMING_HOST_TX), STR_AUDIO_INTERFACE0, UAC2_ENTITY_USB_INPUT_TERMINAL, EP_AUDIO_STREAM, EP_AUDIO_STREAM_OUT_FB | 0x80) 
-           + audio_device_descriptor_input_interface_generator((uint8_t)(ITF_NUM_AUDIO_STREAMING_HOST_RX), STR_AUDIO_INTERFACE1, UAC2_ENTITY_LINEIN_OUTPUT_TERMINAL, EP_AUDIO_STREAM | 0x80)
+           + audio_device_descriptor_output_interface_generator((uint8_t)(ITF_NUM_AUDIO_STREAMING_HOST_TX), STR_AUDIO_INTERFACE0, UAC2_ENTITY_USB_INPUT_TERMINAL, EP_AUDIO_STREAM, EP_AUDIO_STREAM_OUT_FB | 0x80)
 
         ;
 }

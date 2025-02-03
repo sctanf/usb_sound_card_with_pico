@@ -15,11 +15,18 @@ namespace streaming
         {
             uint32_t* buffer_begin;
             uint32_t* buffer_end;
+
             uint8_t i2s_out_pio_program_offset;
             uint8_t i2s_out_pio;
             uint8_t i2s_out_sm;
             uint8_t i2s_out_data_pin;
             uint8_t i2s_out_bck_lrck_pin;
+
+            uint8_t    clk_pio_program_offset;
+            uint8_t    clk_pio;
+            uint8_t    clk_sm;
+            uint8_t    i2s_in_sck_pin;
+
             uint8_t dac_mute_pin;
             uint8_t dma_irq_n;
         };

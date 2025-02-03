@@ -22,13 +22,14 @@ namespace streaming
         init_out_pin(m_config.dac_mute_pin, true);
         
         audio_i2s_32_out_program_init(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, m_config.i2s_out_pio_program_offset, m_config.i2s_out_data_pin, m_config.i2s_out_bck_lrck_pin);
+        pulse_out_program_init(get_pio(m_config.clk_pio), m_config.clk_sm, m_config.clk_pio_program_offset, m_config.i2s_in_sck_pin);
 
         m_dma_ch = dma_claim_unused_channel(true);
         m_dma_ctrl_ch = dma_claim_unused_channel(true);
         setup_dma_circular_read_config(
-            m_dma_ch, m_dma_ctrl_ch, 
-            pio_get_dreq(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true), 
-            &get_pio(m_config.i2s_out_pio)->txf[m_config.i2s_out_sm], 
+            m_dma_ch, m_dma_ctrl_ch,
+            pio_get_dreq(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true),
+            &get_pio(m_config.i2s_out_pio)->txf[m_config.i2s_out_sm],
             0,
             false);
         dma_irqn_set_channel_enabled(m_config.dma_irq_n, m_dma_ch, true);
@@ -47,7 +48,9 @@ namespace streaming
 
         DAC_OUT_LOG("start transfarring\n");
 
+        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, true);
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true);
+
         dma_channel_set_trans_count(m_dma_ch, m_stream_buffer.size(), false);
         dma_channel_transfer_from_buffer_now(m_dma_ctrl_ch, m_dma_control_blocks, 1);
 
@@ -83,7 +86,12 @@ namespace streaming
         m_resolution_bits = bits;
 
         const uint32_t dac_output_frequency = sampling_frequency * device_output_channels * 32 * i2s_output_cycles_per_bit;
-        pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency));
+        const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
+        pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
+    
+        const uint32_t adc_scki_frequency = sampling_frequency * 256 * 2;
+        const auto adc_scki_frequency_div = (float)(clock_get_hz(clk_sys) / (double)adc_scki_frequency);
+        pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, adc_scki_frequency_div);
 
         const uint16_t duration = (m_config.buffer_end - m_config.buffer_begin)/max_output_samples_1ms;
         m_stream_buffer.resize(get_samples_duration_ms(duration, sampling_frequency, device_output_channels));

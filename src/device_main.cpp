@@ -94,7 +94,6 @@ int main(void)
         tusb_pico_reserve_buffer(EP_AUDIO_CONTROL, 256);
         tusb_pico_reserve_buffer(EP_AUDIO_CONTROL | 0x80, 256);
         tusb_pico_reserve_buffer(EP_AUDIO_STREAM, CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ);
-        tusb_pico_reserve_buffer(EP_AUDIO_STREAM | 0x80, CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ);
         tusb_pico_reserve_buffer(EP_AUDIO_STREAM_OUT_FB, 16);
         tusb_pico_reserve_buffer(EP_AUDIO_STREAM_OUT_FB | 0x80, 16);
 #endif
@@ -328,18 +327,6 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const *p_reques
                 streaming::close_rx();
             }
             break;
-        case ITF_NUM_AUDIO_STREAMING_HOST_RX:
-            if(alt)
-            {
-                streaming::set_tx_format(
-                    g_current_sample_rates[UAC2_ENTITY_LINEIN_CLOCK - UAC2_ENTITY_CLOCK_START],
-                    g_current_resolutions[ITF_NUM_AUDIO_STREAMING_HOST_RX]);
-            }
-            else
-            {
-                streaming::close_tx();
-            }
-            break;
     }
 
     return true;
@@ -379,13 +366,7 @@ bool tud_audio_rx_done_pre_read_cb(uint8_t rhport, uint16_t n_bytes_received, ui
 
 bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, uint8_t cur_alt_setting)
 {
-    auto sz = streaming::pop_tx_data(+[](const uint8_t *begin, const uint8_t *end) -> size_t
-    {
-        tud_audio_write(begin, (uint16_t)(end - begin));
-        return (end - begin);
-    });
-
-    return true;
+    return false;
 }
 
 TU_ATTR_FAST_FUNC void tud_audio_feedback_interval_isr(uint8_t func_id, uint32_t frame_number, uint8_t interval_shift)
@@ -453,56 +434,7 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
 
 bool device_control_request(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request)
 {
-    static uint8_t data;
-
-    switch(request->wIndex)
-    {
-        case CONTROL_SPDIF_IN_SET_VOLUME:
-            if (stage == CONTROL_STAGE_SETUP)
-            {
-                DEVICE_LOG("vendor spdif in set volume\n");
-                return tud_control_xfer(rhport, request, &data, sizeof(uint8_t));
-            }
-            else if (stage == CONTROL_STAGE_DATA)
-            {
-                DEVICE_LOG("value %d\n", data);
-                streaming::set_spdif_in_volume(data);
-            }
-            break;
-        case CONTROL_SPDIF_IN_GET_VOLUME:
-            if (stage == CONTROL_STAGE_SETUP)
-            {
-                DEVICE_LOG("vendor spdif in get volume\n");
-                data = streaming::get_spdif_in_volume();
-                return tud_control_xfer(rhport, request, &data, sizeof(uint8_t));
-            }
-            break;
-        case CONTROL_LINE_IN_SET_VOLUME:
-            if (stage == CONTROL_STAGE_SETUP)
-            {
-                DEVICE_LOG("vendor line in set volume\n");
-                return tud_control_xfer(rhport, request, &data, sizeof(uint8_t));
-            }
-            else if (stage == CONTROL_STAGE_DATA)
-            {
-                DEVICE_LOG("value %d\n", data);
-                streaming::set_line_in_volume(data);
-            }
-            break;
-        case CONTROL_LINE_IN_GET_VOLUME:
-            if (stage == CONTROL_STAGE_SETUP)
-            {
-                DEVICE_LOG("vendor line in get volume\n");
-                data = streaming::get_line_in_volume();
-                return tud_control_xfer(rhport, request, &data, sizeof(uint8_t));
-            }
-            break;
-
-        default:
-            return false;
-    }
-    
-    return true;
+    return false;
 }
 
 #endif
