@@ -84,6 +84,7 @@ namespace streaming
 
     static uint32_t g_output_sampling_frequency = 0;
     static uint8_t g_output_resolution_bits = 0;
+    static uint8_t g_device_output_channels = 0;
     static processing::mixer g_output_mixer;
     static uint8_t g_output_mixer_rx_volume = 0xff;
     static uint8_t g_output_mixer_mixed_input_volume = 0xff;
@@ -141,15 +142,15 @@ namespace streaming
     static void start_output_process_job();
     static void stop_output_process_job();
 
-    void set_rx_format(uint32_t sampling_frequency, uint32_t bits)
+    void set_rx_format(uint32_t sampling_frequency, uint32_t bits, uint8_t channels)
     {
         g_output_device_charge_count = (device_buffer_duration / output_mixing_processing_buffer_duration_per_cycle) >> 1;
 
-        if (g_output_sampling_frequency == sampling_frequency && g_output_resolution_bits == bits)
+        if (g_output_sampling_frequency == sampling_frequency && g_output_resolution_bits == bits && g_device_output_channels == channels)
         {
             return;
         }
-        STREAM_LOG("set rx format %u %u\n", sampling_frequency, bits);
+        STREAM_LOG("set rx format %u %u %u\n", sampling_frequency, bits, channels);
 
         stop_output_process_job();
 
@@ -159,13 +160,14 @@ namespace streaming
 
         g_output_sampling_frequency = sampling_frequency;
         g_output_resolution_bits = bits;
+        g_device_output_channels = channels;
 
         g_rx_stream_buffer.resize(get_samples_duration_ms(device_buffer_duration, g_output_sampling_frequency, device_output_channels) * bits_to_bytes(g_output_resolution_bits));
         g_rx_stream_buffer_write_addr = g_rx_stream_buffer.begin();
         g_rx_stream_buffer_read_addr = g_rx_stream_buffer.begin();
 
 #if DAC_OUTPUT_ENABLE
-        g_dac_out.set_format(sampling_frequency, bits);
+        g_dac_out.set_format(sampling_frequency, bits, channels);
 #endif
         update_output_mixer();
 
@@ -368,7 +370,7 @@ namespace streaming
         g_dac_out.init(dac_out_config);
 #endif
 
-        set_rx_format(48000, 16);
+        set_rx_format(48000, 16, 2);
 
     }
 

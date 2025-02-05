@@ -34,7 +34,7 @@ namespace streaming
         void init(const init_config &);
         void start();
         void stop();
-        void set_format(uint32_t sampling_frequency, uint32_t bits);
+        void set_format(uint32_t sampling_frequency, uint32_t bits, uint8_t channels);
         size_t write(const uint8_t* begin, const uint8_t* end);
         void on_dma_isr();
 
@@ -58,6 +58,7 @@ namespace streaming
         int m_dma_ctrl_ch = 0;
         alignas(16) uint32_t *m_dma_control_blocks[2] = {};
         uint8_t m_resolution_bits = 16;
+        uint8_t m_lines = 1;
         bool m_running = false;
 
 #if PRINT_STATS

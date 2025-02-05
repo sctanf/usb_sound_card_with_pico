@@ -37,6 +37,9 @@ constexpr uint32_t sample_rates[] = {48000, 96000};
 // Resolution per format
 constexpr uint8_t resolutions_per_format[2] = {16, 24};
 
+// Channel per format
+constexpr uint8_t channels_per_format[3] = {2, 4, 6};
+
 // feedback descriptor bInterval value is supported only 1 on windows uac2 driver.
 // the interval is measured manually in the sof callback.
 constexpr uint16_t feedback_interval = 4000;
@@ -45,6 +48,7 @@ constexpr uint16_t feedback_interval = 4000;
 
 std::array<uint32_t, UAC2_ENTITY_CLOCK_END - UAC2_ENTITY_CLOCK_START> g_current_sample_rates;
 std::array<uint8_t, ITF_NUM_AUDIO_TOTAL> g_current_resolutions;
+std::array<uint8_t, 3> g_current_channels;
 
 
 #if PRINT_STATS
@@ -61,6 +65,7 @@ int main(void)
 {
     std::fill(g_current_sample_rates.begin(), g_current_sample_rates.end(), 48000);
     std::fill(g_current_resolutions.begin(), g_current_resolutions.end(), 16);
+    std::fill(g_current_channels.begin(), g_current_channels.end(), 2);
 
     clock_configure(clk_sys,
                     CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
@@ -311,7 +316,10 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const *p_reques
     // Clear buffer when streaming format is changed
     // spk_data_size = 0;
     if(alt > 0)
+    {
         g_current_resolutions[itf] = resolutions_per_format[(alt - 1)&1];
+        g_current_channels[itf] = channels_per_format[((alt - 1) / 2) % 3];
+    }
 
     switch(itf)
     {
@@ -320,7 +328,8 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const *p_reques
             {
                 streaming::set_rx_format(
                     g_current_sample_rates[UAC2_ENTITY_USB_INPUT_CLOCK - UAC2_ENTITY_CLOCK_START], 
-                    g_current_resolutions[ITF_NUM_AUDIO_STREAMING_HOST_TX]);
+                    g_current_resolutions[ITF_NUM_AUDIO_STREAMING_HOST_TX],
+                    g_current_channels[ITF_NUM_AUDIO_STREAMING_HOST_TX]);
             }
             else
             {
