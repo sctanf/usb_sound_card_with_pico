@@ -365,6 +365,7 @@ namespace streaming
             .clk_sm = PIO0_SM_ADC_CLK,
             .i2s_in_sck_pin = gpio_assign::dac_sck,
 
+            .dac_mute_pin = gpio_assign::dac_mute,
             .dma_irq_n = 0};
         g_dac_out.init(dac_out_config);
 #endif

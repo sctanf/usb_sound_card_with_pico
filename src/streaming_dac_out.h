@@ -27,6 +27,7 @@ namespace streaming
             uint8_t clk_sm;
             uint8_t i2s_in_sck_pin;
 
+            uint8_t dac_mute_pin;
             uint8_t dma_irq_n;
         };
 
