@@ -15,16 +15,8 @@ constexpr size_t   max_input_samples_1ms = max_sampling_frequency*device_input_c
 
 namespace gpio_assign
 {
-    constexpr uint spdif_tx = 14;
-    constexpr uint spdif_rx = 15;
-
     constexpr uint dac_data = 18;
     constexpr uint dac_bck_lrck = 16;
-    constexpr uint dac_sck = 19;
-    constexpr uint dac_mute = 10;
-
-    constexpr uint adc_data = 2;
-    constexpr uint adc_bck_lrck = 3;
-    constexpr uint adc_sck = 5;
+    constexpr uint dac_sck = 5;
 }
 
