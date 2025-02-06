@@ -52,7 +52,7 @@ namespace streaming
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true);
 
         dma_channel_set_trans_count(m_dma_ch, m_stream_buffer.size(), false);
-        dma_channel_transfer_from_buffer_now(m_dma_ctrl_ch, m_dma_control_blocks, 1);
+        dma_channel_transfer_from_buffer_now(m_dma_ctrl_ch, m_dma_control_blocks, 8);
 
         m_stream_buffer_dma_read_samples = 0;
         m_running = true;
@@ -129,10 +129,10 @@ namespace streaming
                     *dst32_R = 0;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << j; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << channel_shift[j]; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << channel_shift[j]; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << j; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << j; /* R */
                         *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k))]; /* L */
                         *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k + 2))]; /* R */
                     }
@@ -161,10 +161,10 @@ namespace streaming
                     *dst32_R = 0;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << j; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << channel_shift[j]; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << channel_shift[j]; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << j; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << j; /* R */
                         *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k))]; /* L */
                         *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k + 3))]; /* R */
                     }
@@ -192,6 +192,8 @@ namespace streaming
         while (p < end)
         {
             auto result = write_dac_data(m_stream_buffer_write_addr, m_stream_buffer.end(), p, end, m_resolution_bits, m_lines);
+//            sleep_us(80); /* Force delay in buffer */
+
             m_stream_buffer_write_addr = 
                 m_stream_buffer.advance(m_stream_buffer_write_addr, result.wrote_samples);
             p += result.consumed_data_bytes;

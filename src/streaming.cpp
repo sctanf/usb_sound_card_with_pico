@@ -98,7 +98,7 @@ namespace streaming
 
 #if DAC_OUTPUT_ENABLE
     static dac_out g_dac_out;
-    static dac_out::buffer<device_buffer_duration> g_dac_out_buffer;
+    static dac_out::buffer<device_buffer_duration / 2> g_dac_out_buffer;
 #endif
 
 #if USB_IF_CONTROL_ENABLE
