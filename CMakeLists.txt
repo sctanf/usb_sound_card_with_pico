@@ -108,5 +108,5 @@ target_compile_options(${PROJECT} PUBLIC
   )
 
 if(PROFILE)
-  target_compile_options(${PROJECT} PUBLIC -DPROFILE=1)
+  target_compile_options(${PROJECT} PUBLIC)
 endif()
