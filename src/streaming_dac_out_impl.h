@@ -92,7 +92,7 @@ namespace streaming
         const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
     
-        const uint32_t adc_scki_frequency = sampling_frequency * 128 * 2;
+        const uint32_t adc_scki_frequency = sampling_frequency * 384 * 2;
         const auto adc_scki_frequency_div = (float)(clock_get_hz(clk_sys) / (double)adc_scki_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, adc_scki_frequency_div);
 
