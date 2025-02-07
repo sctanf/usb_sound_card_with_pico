@@ -19,7 +19,7 @@ namespace streaming
     {
         m_config = config;
         
-        init_out_pin(m_config.dac_mute_pin, true);
+        init_out_pin(m_config.dac_mute_pin, false);
         
         audio_i2s_32_out_program_init(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, m_config.i2s_out_pio_program_offset, m_config.i2s_out_data_pin, m_config.i2s_out_bck_lrck_pin);
         pulse_out_program_init(get_pio(m_config.clk_pio), m_config.clk_sm, m_config.clk_pio_program_offset, m_config.i2s_in_sck_pin);
@@ -54,6 +54,8 @@ namespace streaming
         dma_channel_set_trans_count(m_dma_ch, m_stream_buffer.size(), false);
         dma_channel_transfer_from_buffer_now(m_dma_ctrl_ch, m_dma_control_blocks, 8);
 
+        gpio_put(m_config.dac_mute_pin, true);
+
         m_stream_buffer_dma_read_samples = 0;
         m_running = true;
     }
@@ -66,7 +68,10 @@ namespace streaming
 
         m_running = false;
 
+        gpio_put(m_config.dac_mute_pin, false);
+
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, false);
+        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, false);
         abort_dma_transfar();
 
         std::fill(m_config.buffer_begin, m_config.buffer_end, 0);
