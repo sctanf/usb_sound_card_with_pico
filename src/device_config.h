@@ -21,6 +21,6 @@ namespace gpio_assign
     constexpr uint dac_data = 3;
     constexpr uint dac_bck_lrck = 8;
 
-    constexpr uint dac_sck = 13;
+    constexpr uint dac_sck = 10;
     constexpr uint dac_mute = 0;
 }
