@@ -347,7 +347,6 @@ namespace streaming
 
 #if DAC_OUTPUT_ENABLE
         auto i2s_out_program_offset = (uint8_t)pio_add_program(get_sm_pio(PIO0_SM_DAC_OUT), &audio_i2s_32_out_program);
-        auto adc_clk_program_offset = (uint8_t)pio_add_program(get_sm_pio(PIO0_SM_ADC_CLK), &pulse_out_program);
         decltype(g_dac_out)::init_config dac_out_config = {
             .buffer_begin = g_dac_out_buffer.begin(),
             .buffer_end = g_dac_out_buffer.end(),
@@ -357,11 +356,6 @@ namespace streaming
             .i2s_out_sm = PIO0_SM_DAC_OUT,
             .i2s_out_data_pin = gpio_assign::dac_data,
             .i2s_out_bck_lrck_pin = gpio_assign::dac_bck_lrck,
-
-            .clk_pio_program_offset = adc_clk_program_offset,
-            .clk_pio = get_sm_pio_index(PIO0_SM_ADC_CLK),
-            .clk_sm = PIO0_SM_ADC_CLK,
-            .i2s_in_sck_pin = gpio_assign::dac_sck,
 
             .dma_irq_n = 0};
         g_dac_out.init(dac_out_config);

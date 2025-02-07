@@ -18,11 +18,8 @@ namespace streaming
     void dac_out::init(const init_config& config)
     {
         m_config = config;
-        
-        init_out_pin(m_config.dac_mute_pin, true);
-        
+
         audio_i2s_32_out_program_init(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, m_config.i2s_out_pio_program_offset, m_config.i2s_out_data_pin, m_config.i2s_out_bck_lrck_pin);
-        pulse_out_program_init(get_pio(m_config.clk_pio), m_config.clk_sm, m_config.clk_pio_program_offset, m_config.i2s_in_sck_pin);
 
         m_dma_ch = dma_claim_unused_channel(true);
         m_dma_ctrl_ch = dma_claim_unused_channel(true);
@@ -48,7 +45,6 @@ namespace streaming
 
         DAC_OUT_LOG("start transfarring\n");
 
-        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, true);
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true);
 
         dma_channel_set_trans_count(m_dma_ch, m_stream_buffer.size(), false);
@@ -89,10 +85,6 @@ namespace streaming
         const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
     
-        const uint32_t adc_scki_frequency = sampling_frequency * 256 * 2;
-        const auto adc_scki_frequency_div = (float)(clock_get_hz(clk_sys) / (double)adc_scki_frequency);
-        pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, adc_scki_frequency_div);
-
         const uint16_t duration = (m_config.buffer_end - m_config.buffer_begin)/max_output_samples_1ms;
         m_stream_buffer.resize(get_samples_duration_ms(duration, sampling_frequency, device_output_channels));
         m_stream_buffer_write_addr = m_config.buffer_begin;
