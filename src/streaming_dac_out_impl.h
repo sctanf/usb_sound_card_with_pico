@@ -119,8 +119,6 @@ namespace streaming
         auto dst32_begin = dst_begin;
         auto dst32 = dst32_begin;
         auto dst32_R = dst32 + 1; /* Right channels offset in output frame */
-//        auto dst32_R = dst32 + 2; /* Right channels offset in output frame */
-//        auto dst32_R = dst32 + 4; /* Right channels offset in output frame */
 
         auto p = data_begin;
         int k;
@@ -139,25 +137,13 @@ namespace streaming
                 *dst32_R = 0;
                 for (k = 1; k >= 0; k--) /* Data resolution bytes, higher byte first */
                 {
-//                    *dst32 = 0;
-//                    *dst32_R = 0;
                     l = (k == 0) ? 0 : 16;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << j; /* R */
-//                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k))]; /* L */
-//                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k + 2))]; /* R */
                         *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 4 + k))] << (1 - j + l); /* L */
                         *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 4 + 2 + k))] << (1 - j + l); /* R */
                     }
-//                    dst32++; /* Advance output dword, input byte */
-//                    dst32_R++;
                 }
-//                dst32 += 4; /* Advance output frame (skip opposite channel)*/
-//                dst32_R += 4;
                 dst32 += 2; /* Advance output frame (skip opposite channel)*/
                 dst32_R += 2;
             }
@@ -171,30 +157,17 @@ namespace streaming
                 {
                     lines = 2;
                 }
-//                for (k = 2; k >= 0; k--) /* Data resolution bytes, higher byte first */
                 *dst32 = 0;
                 *dst32_R = 0;
                 for (k = 2; k >= 1; k--) /* Data resolution bytes, higher byte first */
                 {
-//                    *dst32 = 0;
-//                    *dst32_R = 0;
                     l = (k == 0) ? 0 : 16;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << j; /* R */
-//                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k))]; /* L */
-//                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k + 3))]; /* R */
                         *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 6 + k))] << (1 - j + l); /* L */
                         *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 6 + 3 + k))] << (1 - j + l); /* R */
                     }
-//                    dst32++; /* Advance output dword, input byte */
-//                    dst32_R++;
                 }
-//                dst32 += 4; /* Advance output frame (skip opposite channel)*/
-//                dst32_R += 4;
                 dst32 += 2; /* Advance output frame (skip opposite channel)*/
                 dst32_R += 2;
             }
