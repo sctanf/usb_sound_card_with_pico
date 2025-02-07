@@ -29,17 +29,40 @@
 
                     ;        /--- LRCLK
                     ;        |/-- BCLK
-bitloop1:           ;        ||
+                    ;        ||
+bl1a:
+    jmp y-- bl1a      side 0b01
+    set y, 5          side 0b01
     out pins, 2       side 0b00
-    jmp x-- bitloop1  side 0b01
+bl1b:
+    jmp y-- bl1b      side 0b00
+    set y, 5          side 0b00
+    jmp x-- bl1a      side 0b01
+bl1c:
+    jmp y-- bl1c      side 0b01
+    set y, 5          side 0b01
     out pins, 2       side 0b10
+bl1d:
+    jmp y-- bl1d      side 0b10
+    set y, 5          side 0b10
     set x, 14         side 0b11
 
-bitloop0:
+bl0a:
+    jmp y-- bl1a      side 0b11
+    set y, 5          side 0b11
     out pins, 2       side 0b10
-    jmp x-- bitloop0  side 0b11
+bl0b:
+    jmp y-- bl0b      side 0b10
+    set y, 5          side 0b10
+    jmp x-- bl0a      side 0b11
+bl0c:
+    jmp y-- bl0c      side 0b11
+    set y, 5          side 0b11
     out pins, 2       side 0b00
+bl0d:
+    jmp y-- bl0d      side 0b00
 public entry_point:
+    set y, 5          side 0b00
     set x, 14         side 0b01
 
 % c-sdk {

@@ -12,8 +12,6 @@ namespace streaming
 {
     using namespace support;
 
-    constexpr uint32_t i2s_output_cycles_per_bit = 2;
-
     
     void dac_out::init(const init_config& config)
     {
@@ -90,13 +88,10 @@ namespace streaming
         m_resolution_bits = bits;
         m_lines = channels / 2;
 
-        const uint32_t dac_output_frequency = sampling_frequency * device_output_channels * 16 * i2s_output_cycles_per_bit;
+        const uint32_t dac_output_frequency = sampling_frequency * 256 * 2;
         const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
-    
-        const uint32_t adc_scki_frequency = sampling_frequency * 256 * 2;
-        const auto adc_scki_frequency_div = (float)(clock_get_hz(clk_sys) / (double)adc_scki_frequency);
-        pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, adc_scki_frequency_div);
+        pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, dac_output_frequency_div);
 
         const uint16_t duration = (m_config.buffer_end - m_config.buffer_begin)/max_output_samples_1ms;
         m_stream_buffer.resize(get_samples_duration_ms(duration, sampling_frequency, device_output_channels));
