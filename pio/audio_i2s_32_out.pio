@@ -82,6 +82,19 @@ static inline void audio_i2s_32_out_program_init(PIO pio, uint sm, uint offset, 
     pio_gpio_init(pio, data_pin+3);
     pio_gpio_init(pio, clock_pin_base);
     pio_gpio_init(pio, clock_pin_base+1);
+    
+    gpio_set_slew_rate(data_pin-1, GPIO_SLEW_RATE_SLOW);
+    gpio_set_slew_rate(data_pin  , GPIO_SLEW_RATE_SLOW);
+    gpio_set_slew_rate(data_pin+1, GPIO_SLEW_RATE_SLOW);
+    gpio_set_slew_rate(data_pin+2, GPIO_SLEW_RATE_SLOW);
+    gpio_set_slew_rate(data_pin+3, GPIO_SLEW_RATE_SLOW);
+
+    gpio_set_drive_strength(data_pin-1, GPIO_DRIVE_STRENGTH_2MA);
+    gpio_set_drive_strength(data_pin  , GPIO_DRIVE_STRENGTH_2MA);
+    gpio_set_drive_strength(data_pin+1, GPIO_DRIVE_STRENGTH_2MA);
+    gpio_set_drive_strength(data_pin+2, GPIO_DRIVE_STRENGTH_2MA);
+    gpio_set_drive_strength(data_pin+3, GPIO_DRIVE_STRENGTH_2MA);
+
     pio_sm_init(pio, sm, offset, &sm_config);
 
     uint pin_mask = (15u << (data_pin - 1)) | (3u << clock_pin_base);

@@ -15,6 +15,11 @@ static inline void pulse_out_program_init(PIO pio, uint sm, uint offset, uint ou
     sm_config_set_sideset_pins(&sm_config, out_pin);
     
     pio_gpio_init(pio, out_pin);
+
+    gpio_set_slew_rate(out_pin, GPIO_SLEW_RATE_SLOW);
+
+    gpio_set_drive_strength(out_pin, GPIO_DRIVE_STRENGTH_2MA);
+
     pio_sm_init(pio, sm, offset, &sm_config);
 
     uint pin_mask = (1u << out_pin);
