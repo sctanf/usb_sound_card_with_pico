@@ -90,7 +90,7 @@ namespace streaming
         m_resolution_bits = bits;
         m_lines = channels / 2;
 
-        const uint32_t dac_output_frequency = sampling_frequency * device_output_channels * 16 * i2s_output_cycles_per_bit;
+        const uint32_t dac_output_frequency = sampling_frequency * device_output_channels * 32 * i2s_output_cycles_per_bit;
         const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
     
@@ -105,7 +105,6 @@ namespace streaming
 
     const uint32_t channel_lut[256] = {0x0, 0x1, 0x10, 0x11, 0x100, 0x101, 0x110, 0x111, 0x1000, 0x1001, 0x1010, 0x1011, 0x1100, 0x1101, 0x1110, 0x1111, 0x10000, 0x10001, 0x10010, 0x10011, 0x10100, 0x10101, 0x10110, 0x10111, 0x11000, 0x11001, 0x11010, 0x11011, 0x11100, 0x11101, 0x11110, 0x11111, 0x100000, 0x100001, 0x100010, 0x100011, 0x100100, 0x100101, 0x100110, 0x100111, 0x101000, 0x101001, 0x101010, 0x101011, 0x101100, 0x101101, 0x101110, 0x101111, 0x110000, 0x110001, 0x110010, 0x110011, 0x110100, 0x110101, 0x110110, 0x110111, 0x111000, 0x111001, 0x111010, 0x111011, 0x111100, 0x111101, 0x111110, 0x111111, 0x1000000, 0x1000001, 0x1000010, 0x1000011, 0x1000100, 0x1000101, 0x1000110, 0x1000111, 0x1001000, 0x1001001, 0x1001010, 0x1001011, 0x1001100, 0x1001101, 0x1001110, 0x1001111, 0x1010000, 0x1010001, 0x1010010, 0x1010011, 0x1010100, 0x1010101, 0x1010110, 0x1010111, 0x1011000, 0x1011001, 0x1011010, 0x1011011, 0x1011100, 0x1011101, 0x1011110, 0x1011111, 0x1100000, 0x1100001, 0x1100010, 0x1100011, 0x1100100, 0x1100101, 0x1100110, 0x1100111, 0x1101000, 0x1101001, 0x1101010, 0x1101011, 0x1101100, 0x1101101, 0x1101110, 0x1101111, 0x1110000, 0x1110001, 0x1110010, 0x1110011, 0x1110100, 0x1110101, 0x1110110, 0x1110111, 0x1111000, 0x1111001, 0x1111010, 0x1111011, 0x1111100, 0x1111101, 0x1111110, 0x1111111, 0x10000000, 0x10000001, 0x10000010, 0x10000011, 0x10000100, 0x10000101, 0x10000110, 0x10000111, 0x10001000, 0x10001001, 0x10001010, 0x10001011, 0x10001100, 0x10001101, 0x10001110, 0x10001111, 0x10010000, 0x10010001, 0x10010010, 0x10010011, 0x10010100, 0x10010101, 0x10010110, 0x10010111, 0x10011000, 0x10011001, 0x10011010, 0x10011011, 0x10011100, 0x10011101, 0x10011110, 0x10011111, 0x10100000, 0x10100001, 0x10100010, 0x10100011, 0x10100100, 0x10100101, 0x10100110, 0x10100111, 0x10101000, 0x10101001, 0x10101010, 0x10101011, 0x10101100, 0x10101101, 0x10101110, 0x10101111, 0x10110000, 0x10110001, 0x10110010, 0x10110011, 0x10110100, 0x10110101, 0x10110110, 0x10110111, 0x10111000, 0x10111001, 0x10111010, 0x10111011, 0x10111100, 0x10111101, 0x10111110, 0x10111111, 0x11000000, 0x11000001, 0x11000010, 0x11000011, 0x11000100, 0x11000101, 0x11000110, 0x11000111, 0x11001000, 0x11001001, 0x11001010, 0x11001011, 0x11001100, 0x11001101, 0x11001110, 0x11001111, 0x11010000, 0x11010001, 0x11010010, 0x11010011, 0x11010100, 0x11010101, 0x11010110, 0x11010111, 0x11011000, 0x11011001, 0x11011010, 0x11011011, 0x11011100, 0x11011101, 0x11011110, 0x11011111, 0x11100000, 0x11100001, 0x11100010, 0x11100011, 0x11100100, 0x11100101, 0x11100110, 0x11100111, 0x11101000, 0x11101001, 0x11101010, 0x11101011, 0x11101100, 0x11101101, 0x11101110, 0x11101111, 0x11110000, 0x11110001, 0x11110010, 0x11110011, 0x11110100, 0x11110101, 0x11110110, 0x11110111, 0x11111000, 0x11111001, 0x11111010, 0x11111011, 0x11111100, 0x11111101, 0x11111110, 0x11111111};
     const uint8_t channel_shift[4] = {0, 1, 2, 3};
-    const uint16_t channel_lut_16[256] = {0x0, 0x1, 0x4, 0x5, 0x10, 0x11, 0x14, 0x15, 0x40, 0x41, 0x44, 0x45, 0x50, 0x51, 0x54, 0x55, 0x100, 0x101, 0x104, 0x105, 0x110, 0x111, 0x114, 0x115, 0x140, 0x141, 0x144, 0x145, 0x150, 0x151, 0x154, 0x155, 0x400, 0x401, 0x404, 0x405, 0x410, 0x411, 0x414, 0x415, 0x440, 0x441, 0x444, 0x445, 0x450, 0x451, 0x454, 0x455, 0x500, 0x501, 0x504, 0x505, 0x510, 0x511, 0x514, 0x515, 0x540, 0x541, 0x544, 0x545, 0x550, 0x551, 0x554, 0x555, 0x1000, 0x1001, 0x1004, 0x1005, 0x1010, 0x1011, 0x1014, 0x1015, 0x1040, 0x1041, 0x1044, 0x1045, 0x1050, 0x1051, 0x1054, 0x1055, 0x1100, 0x1101, 0x1104, 0x1105, 0x1110, 0x1111, 0x1114, 0x1115, 0x1140, 0x1141, 0x1144, 0x1145, 0x1150, 0x1151, 0x1154, 0x1155, 0x1400, 0x1401, 0x1404, 0x1405, 0x1410, 0x1411, 0x1414, 0x1415, 0x1440, 0x1441, 0x1444, 0x1445, 0x1450, 0x1451, 0x1454, 0x1455, 0x1500, 0x1501, 0x1504, 0x1505, 0x1510, 0x1511, 0x1514, 0x1515, 0x1540, 0x1541, 0x1544, 0x1545, 0x1550, 0x1551, 0x1554, 0x1555, 0x4000, 0x4001, 0x4004, 0x4005, 0x4010, 0x4011, 0x4014, 0x4015, 0x4040, 0x4041, 0x4044, 0x4045, 0x4050, 0x4051, 0x4054, 0x4055, 0x4100, 0x4101, 0x4104, 0x4105, 0x4110, 0x4111, 0x4114, 0x4115, 0x4140, 0x4141, 0x4144, 0x4145, 0x4150, 0x4151, 0x4154, 0x4155, 0x4400, 0x4401, 0x4404, 0x4405, 0x4410, 0x4411, 0x4414, 0x4415, 0x4440, 0x4441, 0x4444, 0x4445, 0x4450, 0x4451, 0x4454, 0x4455, 0x4500, 0x4501, 0x4504, 0x4505, 0x4510, 0x4511, 0x4514, 0x4515, 0x4540, 0x4541, 0x4544, 0x4545, 0x4550, 0x4551, 0x4554, 0x4555, 0x5000, 0x5001, 0x5004, 0x5005, 0x5010, 0x5011, 0x5014, 0x5015, 0x5040, 0x5041, 0x5044, 0x5045, 0x5050, 0x5051, 0x5054, 0x5055, 0x5100, 0x5101, 0x5104, 0x5105, 0x5110, 0x5111, 0x5114, 0x5115, 0x5140, 0x5141, 0x5144, 0x5145, 0x5150, 0x5151, 0x5154, 0x5155, 0x5400, 0x5401, 0x5404, 0x5405, 0x5410, 0x5411, 0x5414, 0x5415, 0x5440, 0x5441, 0x5444, 0x5445, 0x5450, 0x5451, 0x5454, 0x5455, 0x5500, 0x5501, 0x5504, 0x5505, 0x5510, 0x5511, 0x5514, 0x5515, 0x5540, 0x5541, 0x5544, 0x5545, 0x5550, 0x5551, 0x5554, 0x5555};
 
     const uint32_t channel_lut_packed[4][256] = {
         {0x0, 0x1, 0x10, 0x11, 0x100, 0x101, 0x110, 0x111, 0x1000, 0x1001, 0x1010, 0x1011, 0x1100, 0x1101, 0x1110, 0x1111, 0x10000, 0x10001, 0x10010, 0x10011, 0x10100, 0x10101, 0x10110, 0x10111, 0x11000, 0x11001, 0x11010, 0x11011, 0x11100, 0x11101, 0x11110, 0x11111, 0x100000, 0x100001, 0x100010, 0x100011, 0x100100, 0x100101, 0x100110, 0x100111, 0x101000, 0x101001, 0x101010, 0x101011, 0x101100, 0x101101, 0x101110, 0x101111, 0x110000, 0x110001, 0x110010, 0x110011, 0x110100, 0x110101, 0x110110, 0x110111, 0x111000, 0x111001, 0x111010, 0x111011, 0x111100, 0x111101, 0x111110, 0x111111, 0x1000000, 0x1000001, 0x1000010, 0x1000011, 0x1000100, 0x1000101, 0x1000110, 0x1000111, 0x1001000, 0x1001001, 0x1001010, 0x1001011, 0x1001100, 0x1001101, 0x1001110, 0x1001111, 0x1010000, 0x1010001, 0x1010010, 0x1010011, 0x1010100, 0x1010101, 0x1010110, 0x1010111, 0x1011000, 0x1011001, 0x1011010, 0x1011011, 0x1011100, 0x1011101, 0x1011110, 0x1011111, 0x1100000, 0x1100001, 0x1100010, 0x1100011, 0x1100100, 0x1100101, 0x1100110, 0x1100111, 0x1101000, 0x1101001, 0x1101010, 0x1101011, 0x1101100, 0x1101101, 0x1101110, 0x1101111, 0x1110000, 0x1110001, 0x1110010, 0x1110011, 0x1110100, 0x1110101, 0x1110110, 0x1110111, 0x1111000, 0x1111001, 0x1111010, 0x1111011, 0x1111100, 0x1111101, 0x1111110, 0x1111111, 0x10000000, 0x10000001, 0x10000010, 0x10000011, 0x10000100, 0x10000101, 0x10000110, 0x10000111, 0x10001000, 0x10001001, 0x10001010, 0x10001011, 0x10001100, 0x10001101, 0x10001110, 0x10001111, 0x10010000, 0x10010001, 0x10010010, 0x10010011, 0x10010100, 0x10010101, 0x10010110, 0x10010111, 0x10011000, 0x10011001, 0x10011010, 0x10011011, 0x10011100, 0x10011101, 0x10011110, 0x10011111, 0x10100000, 0x10100001, 0x10100010, 0x10100011, 0x10100100, 0x10100101, 0x10100110, 0x10100111, 0x10101000, 0x10101001, 0x10101010, 0x10101011, 0x10101100, 0x10101101, 0x10101110, 0x10101111, 0x10110000, 0x10110001, 0x10110010, 0x10110011, 0x10110100, 0x10110101, 0x10110110, 0x10110111, 0x10111000, 0x10111001, 0x10111010, 0x10111011, 0x10111100, 0x10111101, 0x10111110, 0x10111111, 0x11000000, 0x11000001, 0x11000010, 0x11000011, 0x11000100, 0x11000101, 0x11000110, 0x11000111, 0x11001000, 0x11001001, 0x11001010, 0x11001011, 0x11001100, 0x11001101, 0x11001110, 0x11001111, 0x11010000, 0x11010001, 0x11010010, 0x11010011, 0x11010100, 0x11010101, 0x11010110, 0x11010111, 0x11011000, 0x11011001, 0x11011010, 0x11011011, 0x11011100, 0x11011101, 0x11011110, 0x11011111, 0x11100000, 0x11100001, 0x11100010, 0x11100011, 0x11100100, 0x11100101, 0x11100110, 0x11100111, 0x11101000, 0x11101001, 0x11101010, 0x11101011, 0x11101100, 0x11101101, 0x11101110, 0x11101111, 0x11110000, 0x11110001, 0x11110010, 0x11110011, 0x11110100, 0x11110101, 0x11110110, 0x11110111, 0x11111000, 0x11111001, 0x11111010, 0x11111011, 0x11111100, 0x11111101, 0x11111110, 0x11111111},
@@ -118,48 +117,41 @@ namespace streaming
     {
         auto dst32_begin = dst_begin;
         auto dst32 = dst32_begin;
-        auto dst32_R = dst32 + 1; /* Right channels offset in output frame */
-//        auto dst32_R = dst32 + 2; /* Right channels offset in output frame */
-//        auto dst32_R = dst32 + 4; /* Right channels offset in output frame */
+        auto dst32_R = dst32 + 4; /* Right channels offset in output frame */
 
         auto p = data_begin;
         int k;
         uint8_t j;
-        uint8_t l;
         if (data_resolution_bits == 16)
         {
             uint8_t increment = 2 * lines * 2;
             for (; p < data_end && dst32 < dst_end; p += increment) /* Input frame in bytes: data resolution bytes * channel count */
             {
-                if (lines > 2)
-                {
-                    lines = 2;
-                }
-                *dst32 = 0;
-                *dst32_R = 0;
                 for (k = 1; k >= 0; k--) /* Data resolution bytes, higher byte first */
                 {
-//                    *dst32 = 0;
-//                    *dst32_R = 0;
-                    l = (k == 0) ? 0 : 16;
+                    *dst32 = 0;
+                    *dst32_R = 0;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << j; /* R */
-//                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k))]; /* L */
-//                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k + 2))]; /* R */
-                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 4 + k))] << (1 - j + l); /* L */
-                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 4 + 2 + k))] << (1 - j + l); /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << channel_shift[j]; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << channel_shift[j]; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 4 + k))] << j; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 4 + 2 + k))] << j; /* R */
+                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k))]; /* L */
+                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 4 + k + 2))]; /* R */
                     }
-//                    dst32++; /* Advance output dword, input byte */
-//                    dst32_R++;
+                    dst32++; /* Advance output dword, input byte */
+                    dst32_R++;
                 }
-//                dst32 += 4; /* Advance output frame (skip opposite channel)*/
-//                dst32_R += 4;
-                dst32 += 2; /* Advance output frame (skip opposite channel)*/
-                dst32_R += 2;
+                for (k = 0; k < 2; k++) /* LSB zero fill */
+                {
+                    *dst32 = 0;
+                    *dst32_R = 0;
+                    dst32++;
+                    dst32_R++;
+                }
+                dst32 += 4; /* Advance output frame (skip opposite channel)*/
+                dst32_R += 4;
             }
         }
         else if (data_resolution_bits == 24)
@@ -167,36 +159,31 @@ namespace streaming
             uint8_t increment = 3 * lines * 2;
             for (; p < data_end && dst32 < dst_end; p += increment) /* Input frame in bytes: data resolution bytes * channel count */
             {
-                if (lines > 2)
+                for (k = 2; k >= 0; k--) /* Data resolution bytes, higher byte first */
                 {
-                    lines = 2;
-                }
-//                for (k = 2; k >= 0; k--) /* Data resolution bytes, higher byte first */
-                *dst32 = 0;
-                *dst32_R = 0;
-                for (k = 2; k >= 1; k--) /* Data resolution bytes, higher byte first */
-                {
-//                    *dst32 = 0;
-//                    *dst32_R = 0;
-                    l = (k == 0) ? 0 : 16;
+                    *dst32 = 0;
+                    *dst32_R = 0;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << channel_shift[j]; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << channel_shift[j]; /* R */
-//                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << j; /* L */
-//                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << j; /* R */
-//                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k))]; /* L */
-//                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k + 3))]; /* R */
-                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 6 + k))] << (1 - j + l); /* L */
-                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 6 + 3 + k))] << (1 - j + l); /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << channel_shift[j]; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << channel_shift[j]; /* R */
+                        *dst32 |= channel_lut[(uint8_t)(*(p + j * 6 + k))] << j; /* L */
+                        *dst32_R |= channel_lut[(uint8_t)(*(p + j * 6 + 3 + k))] << j; /* R */
+                        *dst32 |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k))]; /* L */
+                        *dst32_R |= channel_lut_packed[j][(uint8_t)(*(p + j * 6 + k + 3))]; /* R */
                     }
-//                    dst32++; /* Advance output dword, input byte */
-//                    dst32_R++;
+                    dst32++; /* Advance output dword, input byte */
+                    dst32_R++;
                 }
-//                dst32 += 4; /* Advance output frame (skip opposite channel)*/
-//                dst32_R += 4;
-                dst32 += 2; /* Advance output frame (skip opposite channel)*/
-                dst32_R += 2;
+                for (k = 0; k < 1; k++) /* LSB zero fill */
+                {
+                    *dst32 = 0;
+                    *dst32_R = 0;
+                    dst32++;
+                    dst32_R++;
+                }
+                dst32 += 4; /* Advance output frame (skip opposite channel)*/
+                dst32_R += 4;
             }
         }
 
@@ -215,7 +202,6 @@ namespace streaming
                 m_stream_buffer.advance(m_stream_buffer_write_addr, result.wrote_samples);
             p += result.consumed_data_bytes;
         }
-        start();
 
 #if PRINT_STATS
         m_debug_available_samples = get_buffer_available_samples();
@@ -230,10 +216,6 @@ namespace streaming
         {
             m_stream_buffer_dma_read_samples += m_stream_buffer.size();
             dma_irqn_acknowledge_channel(m_config.dma_irq_n, m_dma_ch);
-        }
-        if (get_buffer_available_samples() == 0)
-        {
-            stop();
         }
     }
 
