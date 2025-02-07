@@ -23,6 +23,7 @@ namespace streaming
         
         audio_i2s_32_out_program_init(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, m_config.i2s_out_pio_program_offset, m_config.i2s_out_data_pin, m_config.i2s_out_bck_lrck_pin);
         pulse_out_program_init(get_pio(m_config.clk_pio), m_config.clk_sm, m_config.clk_pio_program_offset, m_config.i2s_in_sck_pin);
+        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, true);
 
         m_dma_ch = dma_claim_unused_channel(true);
         m_dma_ctrl_ch = dma_claim_unused_channel(true);
@@ -48,7 +49,6 @@ namespace streaming
 
         DAC_OUT_LOG("start transfarring\n");
 
-        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, true);
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, true);
 
         dma_channel_set_trans_count(m_dma_ch, m_stream_buffer.size(), false);
@@ -71,7 +71,6 @@ namespace streaming
         gpio_put(m_config.dac_mute_pin, false);
 
         pio_sm_set_enabled(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, false);
-        pio_sm_set_enabled(get_pio(m_config.clk_pio), m_config.clk_sm, false);
         abort_dma_transfar();
 
         std::fill(m_config.buffer_begin, m_config.buffer_end, 0);
