@@ -98,7 +98,7 @@ namespace streaming
 
 #if DAC_OUTPUT_ENABLE
     static dac_out g_dac_out;
-    static dac_out::buffer<device_buffer_duration / 2> g_dac_out_buffer;
+    static dac_out::buffer<device_buffer_duration> g_dac_out_buffer;
 #endif
 
 #if USB_IF_CONTROL_ENABLE
@@ -144,7 +144,7 @@ namespace streaming
 
     void set_rx_format(uint32_t sampling_frequency, uint32_t bits, uint8_t channels)
     {
-        g_output_device_charge_count = (device_buffer_duration / output_mixing_processing_buffer_duration_per_cycle) >> 1;
+//        g_output_device_charge_count = (device_buffer_duration / output_mixing_processing_buffer_duration_per_cycle) >> 1;
 
         if (g_output_sampling_frequency == sampling_frequency && g_output_resolution_bits == bits && g_device_output_channels == channels)
         {
