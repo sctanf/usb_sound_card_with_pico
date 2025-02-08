@@ -180,7 +180,7 @@ namespace streaming
         while (p < end)
         {
             auto result = write_dac_data(m_stream_buffer_write_addr, m_stream_buffer.end(), p, end, m_resolution_bits, m_lines);
-//            sleep_us(80); /* Force delay in buffer */
+            sleep_us(80); /* Force delay in buffer */
 
             m_stream_buffer_write_addr = 
                 m_stream_buffer.advance(m_stream_buffer_write_addr, result.wrote_samples);
