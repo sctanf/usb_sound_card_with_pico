@@ -186,7 +186,6 @@ namespace streaming
                 m_stream_buffer.advance(m_stream_buffer_write_addr, result.wrote_samples);
             p += result.consumed_data_bytes;
         }
-        start();
 
 #if PRINT_STATS
         m_debug_available_samples = get_buffer_available_samples();
