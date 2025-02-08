@@ -88,11 +88,11 @@ namespace streaming
         m_resolution_bits = bits;
         m_lines = channels / 2;
 
-        const uint32_t dac_output_frequency = sampling_frequency * 96 * 2;
+        const uint32_t dac_output_frequency = sampling_frequency * 96 * 2; /* spread out DATA, LRCLK, and BCLK */
         const auto dac_output_frequency_div = (float)(clock_get_hz(clk_sys) / (double)dac_output_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.i2s_out_pio), m_config.i2s_out_sm, dac_output_frequency_div);
     
-        const uint32_t adc_scki_frequency = sampling_frequency * 128 * 2;
+        const uint32_t adc_scki_frequency = 36864000 * 2; /* this DAC does not care about tightly coupled MCLK */
         const auto adc_scki_frequency_div = (float)(clock_get_hz(clk_sys) / (double)adc_scki_frequency);
         pio_sm_set_clkdiv(get_pio(m_config.clk_pio), m_config.clk_sm, adc_scki_frequency_div);
 
