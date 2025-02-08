@@ -198,12 +198,7 @@ namespace streaming
     {
         if(dma_irqn_get_channel_status(m_config.dma_irq_n, m_dma_ch))
         {
-            m_stream_buffer_dma_read_samples += m_stream_buffer.size();
             dma_irqn_acknowledge_channel(m_config.dma_irq_n, m_dma_ch);
-        }
-        if (get_buffer_available_samples() == 0)
-        {
-            stop();
         }
     }
 

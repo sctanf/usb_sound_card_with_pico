@@ -334,15 +334,6 @@ namespace streaming
     }
 #endif
 
-    static void dma0_irq_handler()
-    {
-        dbg_assert(get_core_num() == 0);
-
-#if DAC_OUTPUT_ENABLE
-        g_dac_out.on_dma_isr();
-#endif
-    }
-
     static void init_system()
     {
         STREAM_LOG("system initialize\n");
