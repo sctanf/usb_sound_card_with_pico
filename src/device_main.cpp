@@ -67,7 +67,7 @@ int main(void)
     std::fill(g_current_resolutions.begin(), g_current_resolutions.end(), 16);
     std::fill(g_current_channels.begin(), g_current_channels.end(), 2);
 
-    set_sys_clock_khz(80000, true);
+    set_sys_clock_khz(240000, true);
 
     clock_configure(clk_sys,
                     CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
@@ -91,7 +91,7 @@ int main(void)
                     frequency,
                     frequency);
 
-    set_sys_clock_khz(80000, true);
+    set_sys_clock_khz(240000, true);
 
     systick_hw->csr = 0b101;
 
