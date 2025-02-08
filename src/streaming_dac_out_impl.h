@@ -138,8 +138,8 @@ namespace streaming
                     l = (k == 0) ? 0 : 16;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 4 + k))] << (j + l); /* L */
-                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 4 + 2 + k))] << (j + l); /* R */
+                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 4 + k))] << (1 - j + l); /* L */
+                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 4 + 2 + k))] << (1 - j + l); /* R */
                     }
                 }
                 dst32 += 2; /* Advance output frame (skip opposite channel)*/
@@ -162,8 +162,8 @@ namespace streaming
                     l = (k == 0) ? 0 : 16;
                     for (j = 0; j < lines; j++) /* Input line count */
                     {
-                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 6 + k))] << (j + l); /* L */
-                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 6 + 3 + k))] << (j + l); /* R */
+                        *dst32 |= channel_lut_16[(uint8_t)(*(p + j * 6 + k))] << (1 - j + l); /* L */
+                        *dst32_R |= channel_lut_16[(uint8_t)(*(p + j * 6 + 3 + k))] << (1 - j + l); /* R */
                     }
                 }
                 dst32 += 2; /* Advance output frame (skip opposite channel)*/
