@@ -67,6 +67,8 @@ int main(void)
     std::fill(g_current_resolutions.begin(), g_current_resolutions.end(), 16);
     std::fill(g_current_channels.begin(), g_current_channels.end(), 2);
 
+    set_sys_clock_khz(240000, true);
+
     clock_configure(clk_sys,
                     CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
                     CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
@@ -88,6 +90,8 @@ int main(void)
                     CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS,
                     frequency,
                     frequency);
+
+    set_sys_clock_khz(240000, true);
 
     systick_hw->csr = 0b101;
 
@@ -131,20 +135,20 @@ int main(void)
     const uint8_t core1mask = (1 << 1);
 
     static job_queue::work_fn usb_job;
-    usb_job.set_affinity_mask(core0mask|core1mask);
+    usb_job.set_affinity_mask(core0mask);
     usb_job.set_callback(tud_update_job);
     usb_job.activate();
     usb_job.set_pending();
 
 #if USB_IF_DEBUG_CDC_ENABLE
     static job_queue::work_fn debug_cdc;
-    debug_cdc.set_affinity_mask(core0mask|core1mask);
+    debug_cdc.set_affinity_mask(core0mask);
     debug_cdc.set_callback(debug_cdc_job);
     debug_cdc.activate();
     debug_cdc.set_pending();
 #endif
 
-    multicore_launch_core1(core1_loop);
+//    multicore_launch_core1(core1_loop);
     while (true)
         job_queue::system::execute();
 

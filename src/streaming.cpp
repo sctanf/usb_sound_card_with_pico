@@ -373,10 +373,10 @@ namespace streaming
         const uint8_t core1mask = (1 << 1);
         const uint8_t core_both_mask = core0mask | core1mask;
 
-        g_job_mix_out.set_affinity_mask(core_both_mask);
+        g_job_mix_out.set_affinity_mask(core0mask);
 
 #if DAC_OUTPUT_ENABLE
-        g_job_mix_out_dac.set_affinity_mask(core_both_mask);
+        g_job_mix_out_dac.set_affinity_mask(core0mask);
 #endif
 
         init_system();
