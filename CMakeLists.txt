@@ -22,6 +22,7 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 set(PICO_BOARD pico CACHE STRING "Board type")
+set(FAMILY rp2040 CACHE STRING "Board family")
 if(NOT PICO_SDK_PATH)
   set(PICO_SDK_PATH $ENV{PICO_SDK_PATH} CACHE STRING "Pico SDK path")
 endif()
