@@ -1,5 +1,4 @@
 #include <pico/sync.h>
-#include "debug.h"
 #include "job_queue.h"
 
 namespace job_queue

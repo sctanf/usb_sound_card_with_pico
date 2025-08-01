@@ -35,10 +35,6 @@ namespace streaming
         uint32_t get_buffer_available_samples() const;
         uint32_t get_buffer_left_count() const;
 
-#if PRINT_STATS
-        void print_stats();
-#endif
-        
         static constexpr size_t get_buffer_size(uint16_t duration_ms) { return spdif::block_samples*((duration_ms + 1)/2); }
         template<uint16_t DurationMS> using buffer = std::array<uint32_t, get_buffer_size(DurationMS)>;
     private:
@@ -54,10 +50,6 @@ namespace streaming
         uint8_t m_resolutin_bits = 16;
         uint16_t m_processed_samples = 0;
         bool m_running = false;
-
-#if PRINT_STATS
-        uint32_t m_debug_available_samples = 0;
-#endif
 
         void abort_dma_transfar();
         void process_data_samples();

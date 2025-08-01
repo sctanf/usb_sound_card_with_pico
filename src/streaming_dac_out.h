@@ -43,10 +43,6 @@ namespace streaming
         uint32_t get_buffer_available_samples() const;
         uint32_t get_buffer_left_count() const;
 
-#if PRINT_STATS
-        void print_stats();
-#endif
-
         static constexpr size_t get_buffer_size(uint16_t duration_ms) { return max_output_samples_1ms*duration_ms; }
         template<uint16_t DurationMS> using buffer = std::array<uint32_t, get_buffer_size(DurationMS)>;
     private:
@@ -60,10 +56,6 @@ namespace streaming
         uint8_t m_resolution_bits = 16;
         uint8_t m_lines = 1;
         bool m_running = false;
-
-#if PRINT_STATS
-        uint32_t m_debug_available_samples = 0;
-#endif
 
         void abort_dma_transfar();
         void process_data_samples();

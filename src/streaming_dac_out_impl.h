@@ -187,10 +187,6 @@ namespace streaming
             p += result.consumed_data_bytes;
         }
 
-#if PRINT_STATS
-        m_debug_available_samples = get_buffer_available_samples();
-#endif
-
         return p - begin;
     }
 
@@ -219,17 +215,5 @@ namespace streaming
     {
         return m_stream_buffer.size() - get_buffer_available_samples();
     }
-
-#if PRINT_STATS
-    void dac_out::print_stats()
-    {
-        dbg_printf(
-            "  dac out:\n"
-            "    left: %u/%u\n"
-            "    consumed: %u\n",
-            m_debug_available_samples, m_stream_buffer.size(),
-            get_consumed_samples());
-    }
-#endif
 
 }

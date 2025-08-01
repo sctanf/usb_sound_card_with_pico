@@ -210,18 +210,6 @@ constexpr auto fn_device_descriptor_generator()
 
 #endif
 
-#if USB_IF_DEBUG_CDC_ENABLE
-
-constexpr auto debug_cdc_descriptor_generator()
-{
-    return descriptor{
-        // Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-        TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_DEBUG, STR_DEBUG_INTERFACE, EP_DEBUG_CDC_NOTIFY|0x80, 8, EP_DEBUG_CDC_DATA, EP_DEBUG_CDC_DATA|0x80, 64) 
-    };
-}
-
-#endif
-
 #if USB_IF_AUDIO_ENABLE
 extern "C" const unsigned long tud_audio_headset_stereo_desc_len = std::size(audio_device_descriptor_generator());
 #endif
@@ -233,9 +221,6 @@ constexpr auto desc_configuration_len = TUD_CONFIG_DESC_LEN
 #if USB_IF_CONTROL_ENABLE
     + std::size(fn_device_descriptor_generator())
 #endif
-#if USB_IF_DEBUG_CDC_ENABLE
-    + std::size(debug_cdc_descriptor_generator())
-#endif
     ;
 
 constexpr auto const desc_configuration =
@@ -245,9 +230,6 @@ constexpr auto const desc_configuration =
 #endif
 #if USB_IF_CONTROL_ENABLE
     + fn_device_descriptor_generator()
-#endif
-#if USB_IF_DEBUG_CDC_ENABLE
-    + debug_cdc_descriptor_generator()
 #endif
     ;
 

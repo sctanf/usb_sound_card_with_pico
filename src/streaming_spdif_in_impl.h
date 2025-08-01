@@ -5,7 +5,6 @@
 #include <hardware/structs/systick.h>
 #include <hardware/structs/bus_ctrl.h>
 #include "support.h"
-#include "profiler.h"
 #include "spdif_in.pio.h"
 
 

@@ -3,7 +3,6 @@
 #include <memory>
 #include <algorithm>
 #include <string.h>
-#include "debug.h"
 #include "support.h"
 #include "converter.h"
 #include "mixer.h"
@@ -14,9 +13,6 @@ using namespace support;
 
 void test_conversion(uint8_t src_bits, uint32_t src_freq, uint8_t dst_bits, uint32_t dst_freq,  bool use_interp)
 {
-    dbg_printf("src_bits=%d src_freq=%d dst_bits=%d dst_freq=%d interp=%s\n",
-        src_bits, src_freq, dst_bits, dst_freq, use_interp ? "on" : "off");
-
     constexpr uint32_t src_samples_num = 64;
 
     static uint8_t src_data[4 * src_samples_num];
@@ -74,8 +70,6 @@ void test_conversion(uint8_t src_bits, uint32_t src_freq, uint8_t dst_bits, uint
             src_offset += result.src_advanced_bytes;
         }
 
-        dbg_printf("%d: ", i);
-
         auto *p = dst_data;
         while (p < dst_data + dst_offset)
         {
@@ -88,12 +82,8 @@ void test_conversion(uint8_t src_bits, uint32_t src_freq, uint8_t dst_bits, uint
                 case 32: value = bytes_to_dword<32, true>(p); break;
             }
             p += config.dst_stride;
-            dbg_printf("%d ", value);
         }
-        dbg_printf("\n");
     }
-
-    //dbg_printf("spend %s %u\n", use_interp ? "interp" : "instr", time_us_32() - time);
 }
 
 void measure_conversion(bool use_interp)
@@ -148,14 +138,10 @@ void measure_conversion(bool use_interp)
         dst_offset += result.dst_advanced_bytes;
         src_offset += result.src_advanced_bytes;
     }
-
-    dbg_printf("spend %s %u\n", use_interp ? "interp" : "instr", time_us_32() - time);
 }
 
 void test_mixer(uint8_t bits, bool use_interp)
 {
-    dbg_printf("test_mixer bits=%u interop=%s\n", bits, use_interp ? "on" : "off");
-
     static std::array<uint32_t, 64>  src1_array;
     static std::array<uint32_t, 64>  src2_array;
 
@@ -176,7 +162,6 @@ void test_mixer(uint8_t bits, bool use_interp)
     bool result;
 
     auto print_src = [&](const char* label){
-        dbg_printf("%s: ", label);
         for(size_t i = 0; i < src2_array.size(); ++i)
         {
             int value = 0;
@@ -188,9 +173,7 @@ void test_mixer(uint8_t bits, bool use_interp)
                 case 24: value = bytes_to_dword<24, true>(p); break;
                 case 32: value = bytes_to_dword<32, true>(p); break;
             }
-            dbg_printf("%d ", value);
         }
-        dbg_printf("\n");
     };
     
     uint32_t value = value_min;
@@ -214,8 +197,6 @@ void test_mixer(uint8_t bits, bool use_interp)
 
 void measure_mixer(uint8_t bits, bool use_interp)
 {
-    dbg_printf("test_mixer bits=%u interop=%s\n", bits, use_interp ? "on" : "off");
-
     constexpr uint32_t samples = 1024;
 
     static std::array<uint32_t, samples>  src1_array;
@@ -244,8 +225,6 @@ void measure_mixer(uint8_t bits, bool use_interp)
     mixer.apply(0x80, (uint8_t*)src1_array.begin(), (uint8_t*)src1_array.end(), (uint8_t*)src2_array.begin(), (uint8_t*)src2_array.end(), true);
 
     mixer.apply(0xff, (uint8_t*)src1_array.begin(), (uint8_t*)src1_array.end(), (uint8_t*)src2_array.begin(), (uint8_t*)src2_array.end(), false);
-
-    dbg_printf("spent %u\n", time_us_32() - time);
 }
 
 void test_start(void *)
@@ -254,7 +233,6 @@ void test_start(void *)
 #if 0
     while(true)
     {
-        dbg_printf("upsampling \n");
         test_conversion(16, 1000, 16, 3333, true);
         test_conversion(20, 1000, 16, 3333, true);
         test_conversion(24, 1000, 16, 3333, true);
@@ -291,7 +269,6 @@ void test_start(void *)
         test_conversion(24, 1000, 32, 3333, false);
         test_conversion(32, 1000, 32, 3333, false);
 
-        dbg_printf("downsampling \n");
         test_conversion(16, 1000, 16, 300, true);
         test_conversion(20, 1000, 16, 300, true);
         test_conversion(24, 1000, 16, 300, true);
@@ -344,7 +321,6 @@ void test_start(void *)
 #if 0
     while(true)
     {
-        dbg_printf("start\n");
         test_mixer(16, true);
         test_mixer(16, false);
         test_mixer(20, true);
@@ -360,8 +336,6 @@ void test_start(void *)
 
     while(true)
     {
-        dbg_printf("start\n");
-
         measure_mixer(16, true);
         measure_mixer(20, true);
         measure_mixer(24, true);

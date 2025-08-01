@@ -9,8 +9,6 @@
 #include "support.h"
 #include "debug.h"
 #include "converter.h"
-#include "profiler.h"
-#include "profile_measurement_list.h"
 
 namespace processing
 {
@@ -36,8 +34,6 @@ namespace processing
         constexpr uint32_t sample_continue_flag = 0x80000000;
         constexpr uint32_t lack_first_sample_flag = 0x40000000;
         
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_IP_SETUP);
-
         const auto step = m_step;
         const auto src_stride = m_config.src_stride*m_config.channels;
         const auto dst_stride = m_config.dst_stride*m_config.channels;
@@ -69,10 +65,6 @@ namespace processing
             interp0->add_raw[0] = step;
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_IP_LOOP);
-        
         update_src_addr();
         while(src < src_end && dst < dst_end)
         {
@@ -86,10 +78,6 @@ namespace processing
             update_src_addr();
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_IP_SAVE);
-
         m_ch_state[ch].base0 = interp0->base[0];
         m_ch_state[ch].base1 = interp0->base[1];
         m_ch_state[ch].count = interp0->peek[0] | sample_continue_flag;
@@ -98,8 +86,6 @@ namespace processing
             m_ch_state[ch].count |= ((src - src_end)/src_stride << 8);
             src = src_end;
         }
-
-        PROFILE_MEASURE_END();
 
         return { (size_t)(src - src_begin), (size_t)(dst - dst_begin) };
     }
@@ -110,8 +96,6 @@ namespace processing
         constexpr uint32_t sample_continue_flag = 0x80000000;
         constexpr uint32_t lack_first_sample_flag = 0x40000000;
         
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_SETUP);
-
         const auto step = m_step;
         const auto src_stride = m_config.src_stride*m_config.channels;
         const auto dst_stride = m_config.dst_stride*m_config.channels;
@@ -143,10 +127,6 @@ namespace processing
             total_steps += step;
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_LOOP);
-        
         update_src_addr();
         while(src < src_end && dst < dst_end)
         {
@@ -161,10 +141,6 @@ namespace processing
             update_src_addr();
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_DWSMP_SAVE);
-
         m_ch_state[ch].base0 = base0;
         m_ch_state[ch].base1 = base1;
         m_ch_state[ch].count = (total_steps&0xff) | sample_continue_flag;
@@ -173,8 +149,6 @@ namespace processing
             m_ch_state[ch].count |= ((src - src_end)/src_stride << 8);
             src = src_end;
         }
-
-        PROFILE_MEASURE_END();
 
         return { (size_t)(src - src_begin), (size_t)(dst - dst_begin) };
     }
@@ -229,8 +203,6 @@ namespace processing
         constexpr uint32_t sample_continue_flag = 0x80000000;
         constexpr uint32_t lack_first_sample_flag = 0x40000000;
 
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_IP_SETUP);
-
         const auto step = m_step;
         const auto src_stride = m_config.src_stride*m_config.channels;
         const auto dst_stride = m_config.dst_stride*m_config.channels;
@@ -260,10 +232,6 @@ namespace processing
         interp0->base[2] = (uintptr_t)src;
         interp0->accum[0] =  m_ch_state[ch].count&~count_flags_mask;
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_IP_LOOP);
-
         while(src < src_end && dst < dst_end)
         {
             while(src == (uint8_t*)interp0->peek[2] && dst < dst_end)
@@ -288,15 +256,9 @@ namespace processing
             }
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_IP_SAVE);
-
         m_ch_state[ch].base0 = interp0->base[0];
         m_ch_state[ch].base1 = interp0->base[1];
         m_ch_state[ch].count = interp0->peek[0] | sample_continue_flag;
-
-        PROFILE_MEASURE_END();
 
         return { (size_t)(src - src_begin), (size_t)(dst - dst_begin) };
     }
@@ -306,8 +268,6 @@ namespace processing
     {
         constexpr uint32_t sample_continue_flag = 0x80000000;
         constexpr uint32_t lack_first_sample_flag = 0x40000000;
-
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_SETUP);
 
         const auto step = m_step;
         const auto src_stride = m_config.src_stride*m_config.channels;
@@ -338,10 +298,6 @@ namespace processing
         
         uint32_t total_steps = m_ch_state[ch].count&~count_flags_mask;
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_LOOP);
-
         while(src < src_end && dst < dst_end)
         {
             while((total_steps>>8) == 0 && dst < dst_end)
@@ -363,15 +319,9 @@ namespace processing
             }
         }
 
-        PROFILE_MEASURE_END();
-
-        PROFILE_MEASURE_BEGIN(PROF_UPSMP_SAVE);
-
         m_ch_state[ch].base0 = base0;
         m_ch_state[ch].base1 = base1;
         m_ch_state[ch].count = total_steps | sample_continue_flag;
-
-        PROFILE_MEASURE_END();
 
         return { (size_t)(src - src_begin), (size_t)(dst - dst_begin) };
     }

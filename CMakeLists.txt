@@ -69,8 +69,6 @@ target_sources(${PROJECT} PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/mixer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/spdifdefs.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/job_queue.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/debug.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/profiler.cpp
 )
 
 # Add the standard include files to the build

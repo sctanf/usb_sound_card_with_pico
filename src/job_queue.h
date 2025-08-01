@@ -3,10 +3,6 @@
 #include <stdint.h>
 #include "node.h"
 
-#if !defined(JOB_TRACE_ENABLE)
-#define JOB_TRACE_ENABLE    0
-#endif
-
 namespace job_queue
 {
     class system
@@ -63,10 +59,4 @@ namespace job_queue
     private:
         callback_t m_fn = nullptr;
     };
-
-#if JOB_TRACE_ENABLE
-    #define JOB_TRACE_LOG(...) dbg_printf("[JOB] " __VA_ARGS__)
-#else
-    #define JOB_TRACE_LOG(...) 
-#endif
 }

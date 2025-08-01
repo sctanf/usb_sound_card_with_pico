@@ -14,22 +14,10 @@
 #include "control_request.h"
 #include "streaming.h"
 #include "job_queue.h"
-#include "debug.h"
-#include "profiler.h"
-#include "profile_measurement_list.h"
 
 //--------------------------------------------------------------------+
 
 #define DEVICE_LOG(...)   TU_LOG1("[DEVICE] " __VA_ARGS__);
-
-#if PRINT_STATS
-struct debug_stats
-{
-    uint32_t    fb_freq;
-    uint32_t    fb;
-};
-#endif
-
 
 // List of supported sample rates
 constexpr uint32_t sample_rates[] = {48000, 96000};
@@ -49,11 +37,6 @@ constexpr uint16_t feedback_interval = 4000;
 std::array<uint32_t, UAC2_ENTITY_CLOCK_END - UAC2_ENTITY_CLOCK_START> g_current_sample_rates;
 std::array<uint8_t, ITF_NUM_AUDIO_TOTAL> g_current_resolutions;
 std::array<uint8_t, 3> g_current_channels;
-
-
-#if PRINT_STATS
-debug_stats g_debug_stats;
-#endif
 
 void core1_loop();
 void debug_cdc_job(job_queue::work*);
@@ -110,22 +93,9 @@ int main(void)
         tusb_pico_reserve_buffer(EP_AUDIO_USER_CONTROL, 256);
         tusb_pico_reserve_buffer(EP_AUDIO_USER_CONTROL | 0x80, 256);
 #endif
-#if USB_IF_DEBUG_CDC_ENABLE
-        tusb_pico_reserve_buffer(EP_DEBUG_CDC_NOTIFY | 0x80, 16);
-        tusb_pico_reserve_buffer(EP_DEBUG_CDC_DATA, 128);
-        tusb_pico_reserve_buffer(EP_DEBUG_CDC_DATA | 0x80, 128);
-#endif
     }
-    
-#if USB_IF_DEBUG_CDC_ENABLE
-    dbg_print_init();
-#endif
 
     job_queue::system::init();
-
-    PROFILE_INITIALIZE(2, MAX_MEASUREMENT);
-    PROFILE_CREATE_GROUP("core0");
-    PROFILE_CREATE_GROUP("core1");
 
 #if USB_IF_AUDIO_ENABLE
     streaming::init();
@@ -139,14 +109,6 @@ int main(void)
     usb_job.set_callback(tud_update_job);
     usb_job.activate();
     usb_job.set_pending();
-
-#if USB_IF_DEBUG_CDC_ENABLE
-    static job_queue::work_fn debug_cdc;
-    debug_cdc.set_affinity_mask(core0mask|core1mask);
-    debug_cdc.set_callback(debug_cdc_job);
-    debug_cdc.activate();
-    debug_cdc.set_pending();
-#endif
 
     multicore_launch_core1(core1_loop);
     while (true)
@@ -388,10 +350,6 @@ TU_ATTR_FAST_FUNC void tud_audio_feedback_interval_isr(uint8_t func_id, uint32_t
     systick_hw->cvr = 0xffffff;
 
     uint32_t feedback = tud_audio_feedback_update(0, cycles);
-#if PRINT_STATS
-    g_debug_stats.fb_freq = cycles;
-    g_debug_stats.fb = feedback;
-#endif
 }
 
 #endif
@@ -458,64 +416,7 @@ bool device_control_request(uint8_t rhport, uint8_t stage, tusb_control_request_
 
 void tud_update_job(job_queue::work *job)
 {
-    PROFILE_MEASURE_BEGIN(PERF_TUD_TASK);
     tud_task(); // tinyusb device task
-    PROFILE_MEASURE_END();
 
     job->set_pending();
 }
-
-#if PRINT_STATS
-void print_debug_stats()
-{
-    dbg_printf("stats:\n");
-    dbg_printf("  time: %f\n", time_us_64()/1000000.);
-    dbg_printf("  fb: %u  freq: %u\n", g_debug_stats.fb, g_debug_stats.fb_freq);
-    streaming::print_debug_stats();
-}
-#endif
-
-#if USB_IF_DEBUG_CDC_ENABLE
-
-void debug_cdc_job(job_queue::work *job)
-{
-    static bool stats_on = false;
-    static uint32_t stats_timer = 0;
-
-    if(tud_cdc_available())
-    {
-        char line_buf[64];
-
-        const auto sz = tud_cdc_read(line_buf, std::size(line_buf));
-        line_buf[sz] = '\0';
-
-        if(strcmp(line_buf, "perf") == 0)
-        {
-            PROFILE_PRINT();
-        }
-        else if(strcmp(line_buf, "reset") == 0)
-        {
-            PROFILE_RESET();
-        }
-        else if(strstr(line_buf, "stats") == line_buf)
-        {
-            stats_on = strstr(line_buf, "on") ? true : false;
-        }
-    }
-
-#if PRINT_STATS
-    if(stats_on && time_us_32() > stats_timer)
-    {
-        print_debug_stats();
-        stats_timer = time_us_32() + 500000;
-    }
-#endif
-
-    PROFILE_MEASURE_BEGIN(PERF_CDC_FLUSH);
-    dbg_flush_cdc();
-    PROFILE_MEASURE_END();
-
-    job->set_pending_delay_us(1000);
-}
-
-#endif

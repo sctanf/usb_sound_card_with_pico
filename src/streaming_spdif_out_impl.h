@@ -172,10 +172,6 @@ size_t spdif_out::write(const uint8_t *begin, const uint8_t * end)
         p += result.consumed_data_bytes;
     }
 
-#if PRINT_STATS
-        m_debug_available_samples = get_buffer_available_samples();
-#endif
-
     return p - begin;
 }
 
@@ -205,17 +201,5 @@ uint32_t spdif_out::get_buffer_left_count() const
 {
     return (m_stream_buffer.size()) - get_buffer_available_samples();
 }
-
-#if PRINT_STATS
-void spdif_out::print_stats()
-{
-    dbg_printf(
-        "  spdif out:\n"
-        "    left: %u/%u\n"
-        "    consumed: %u\n",
-        m_debug_available_samples, m_stream_buffer.size(),
-        get_consumed_samples());
-}
-#endif
 
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "debug.h"
-
 namespace data_structure
 {
     class node
@@ -15,9 +13,6 @@ namespace data_structure
 
         void insert(node* where)
         {
-            dbg_assert(where);
-            dbg_assert(m_next==nullptr && m_prev==nullptr);
-
             m_prev = where;
             m_next = where->m_next;
             where->m_next->m_prev = this;
@@ -29,13 +24,9 @@ namespace data_structure
             if(m_next==nullptr && m_prev==nullptr)
                 return;
 
-            dbg_assert(m_next && m_prev);
-
             auto prev = m_prev;
             auto next = m_next;
-            dbg_assert(prev->m_next == this);
             prev->m_next = next;
-            dbg_assert(next->m_prev == this);
             next->m_prev = prev;
 
             m_next = nullptr;

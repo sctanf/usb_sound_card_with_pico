@@ -8,9 +8,6 @@
 
 #if USB_IF_AUDIO_ENABLE
 
-#include "debug.h"
-#include "profiler.h"
-#include "profile_measurement_list.h"
 #include "support.h"
 #include "circular_buffer.h"
 #include "converter.h"
@@ -241,8 +238,6 @@ namespace streaming
 
     static void job_mix_output_init(job_queue::work *)
     {
-        JOB_TRACE_LOG("job_mix_output_init\n");
-
         g_job_mix_out.sample_bytes = bits_to_bytes(g_output_resolution_bits);
         g_job_mix_out.buffer_size = get_samples_duration_ms(output_mixing_processing_buffer_duration_per_cycle, g_output_sampling_frequency, device_output_channels) * g_job_mix_out.sample_bytes;
         g_job_mix_out.set_callback(job_mix_output_process);
@@ -251,8 +246,6 @@ namespace streaming
 
     static void job_mix_output_process(job_queue::work *)
     {
-        JOB_TRACE_LOG("job_mix_output_process\n");
-
         static std::array<uint8_t, max_output_samples_1ms * output_mixing_processing_buffer_duration_per_cycle * sizeof(uint32_t)> data_tmp_buf;
         static std::array<uint8_t, max_output_samples_1ms * output_mixing_processing_buffer_duration_per_cycle * sizeof(uint32_t)> mix_tmp_buf;
 
@@ -280,8 +273,6 @@ namespace streaming
         g_debug_stats.outmix.src_left = g_rx_stream_buffer.distance(g_rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr);
 #endif
 
-        PROFILE_MEASURE_BEGIN(PROF_MIXOUT_USBDATA);
-        
         const auto rx_stream_buffer_write_addr = g_rx_stream_buffer_write_addr;
         auto read_addr = g_rx_stream_buffer_read_addr;
 
@@ -293,8 +284,6 @@ namespace streaming
             g_output_mixer_rx_volume,
             data_tmp_buf.begin(), data_tmp_buf.begin() + fetch_bytes,
             mix_tmp_buf.begin(), mix_tmp_buf.begin() + fetch_bytes, true);
-
-        PROFILE_MEASURE_END();
 
 
         const auto fetch_samples = fetch_bytes / output_sample_bytes;
@@ -313,8 +302,6 @@ namespace streaming
 #if DAC_OUTPUT_ENABLE
     static void job_mix_output_dac_write(job_queue::work *)
     {
-        JOB_TRACE_LOG("job_mix_output_dac_write\n");
-
         auto &job = g_job_mix_out_dac;
         if (g_dac_out.is_running())
         {
@@ -325,9 +312,7 @@ namespace streaming
             }
         }
 
-        PROFILE_MEASURE_BEGIN(PROF_MIXOUT_DAC_WRITE);
         job.result_size = g_dac_out.write(job.data_begin, job.data_end);
-        PROFILE_MEASURE_END();
 
         if (g_output_device_charge_count == 0 && !g_dac_out.is_running())
             g_dac_out.start();
@@ -381,35 +366,6 @@ namespace streaming
 
         init_system();
     }
-
-#if PRINT_STATS
-    void print_debug_stats()
-    {
-        dbg_printf(
-            "  rx:\n"
-            "    bytes: %u\n",
-            g_debug_stats.received_bytes);
-        dbg_printf(
-            "  tx:\n"
-            "    bytes: %u\n",
-            g_debug_stats.transfar_bytes);
-        dbg_printf(
-            "  outmix:\n"
-            "    src left: %u/%u\n"
-            "    input left: %u/%u\n"
-            "    processed bytes: %u\n",
-            g_debug_stats.outmix.src_left, g_rx_stream_buffer.size(), g_debug_stats.outmix.input_left, g_input_mixing_buffer.size(), g_debug_stats.outmix.processed_bytes);
-
-        dbg_printf(
-            "  inmix:\n"
-            "    adc in left: %u\n"
-            "    spdif in left: %u\n"
-            "    processed bytes: %u\n",
-            g_debug_stats.inmix.adc_in_samples, g_debug_stats.inmix.spdif_in_samples, g_debug_stats.inmix.processed_bytes);
-
-        g_debug_stats = {};
-    }
-#endif
 
 }
 

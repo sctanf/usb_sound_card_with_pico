@@ -3,7 +3,7 @@
 #include "support.h"
 #include "audio_i2s_32_in.pio.h"
 #include "pulse_out.pio.h"
-
+#include "debug.h"
 
 #define ADC_IN_LOG(...)   TU_LOG1("[ADC_IN] " __VA_ARGS__);
 

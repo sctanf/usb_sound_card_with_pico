@@ -58,8 +58,6 @@ extern "C" {
 // Enable Device stack
 #define CFG_TUD_ENABLED             1
 
-#define CFG_TUSB_DEBUG_PRINTF       dbg_printf
-
 // CFG_TUSB_DEBUG is defined by compiler in DEBUG build
 // #define CFG_TUSB_DEBUG           0
 
@@ -87,7 +85,6 @@ extern "C" {
 #endif
 
 //------------- CLASS -------------//
-#define CFG_TUD_CDC               (USB_IF_DEBUG_CDC_ENABLE ? 1 : 0)
 #define CFG_TUD_MSC               0
 #define CFG_TUD_HID               0
 #define CFG_TUD_MIDI              0
@@ -130,17 +127,6 @@ extern const unsigned long tud_audio_headset_stereo_desc_len;
 // If not configured vendor endpoints will not be buffered
 #define CFG_TUD_VENDOR_RX_BUFSIZE (64)
 #define CFG_TUD_VENDOR_TX_BUFSIZE (64)
-
-#endif
-
-#if CFG_TUD_CDC
-
-// CDC FIFO size of TX and RX
-#define CFG_TUD_CDC_RX_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
-#define CFG_TUD_CDC_TX_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
-
-// CDC Endpoint transfer buffer size, more is faster
-#define CFG_TUD_CDC_EP_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
 
 #endif
 
