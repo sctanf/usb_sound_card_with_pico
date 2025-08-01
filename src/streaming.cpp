@@ -10,8 +10,6 @@
 
 #include "support.h"
 #include "circular_buffer.h"
-#include "converter.h"
-#include "mixer.h"
 #include "job_queue.h"
 #include "streaming.h"
 #include "streaming_internal.h"
@@ -80,7 +78,6 @@ namespace streaming
     static uint32_t g_output_sampling_frequency = 0;
     static uint8_t g_output_resolution_bits = 0;
     static uint8_t g_device_output_channels = 0;
-    static processing::mixer g_output_mixer;
     static uint8_t g_output_mixer_rx_volume = 0xff;
     static uint8_t g_output_mixer_mixed_input_volume = 0xff;
     static bool g_output_process_task_active;
@@ -117,23 +114,6 @@ namespace streaming
     debug_stats g_debug_stats;
 #endif
 
-    void update_output_mixer()
-    {
-        if (g_output_resolution_bits == 0)
-        {
-            return;
-        }
-
-        processing::mixer::config mixer_config = {
-            .bits = g_output_resolution_bits,
-            .stride = bits_to_bytes(g_output_resolution_bits),
-            .channels = device_output_channels,
-            .use_interp = true};
-        g_output_mixer.setup(mixer_config);
-    }
-
-
-
     static void start_output_process_job();
     static void stop_output_process_job();
 
@@ -164,7 +144,6 @@ namespace streaming
 #if DAC_OUTPUT_ENABLE
         g_dac_out.set_format(sampling_frequency, bits, channels);
 #endif
-        update_output_mixer();
 
         start_output_process_job();
     }
@@ -278,17 +257,11 @@ namespace streaming
         g_rx_stream_buffer_read_addr =
             g_rx_stream_buffer.copy_to(rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr, data_tmp_buf.begin(), fetch_bytes);
 
-        g_output_mixer.apply(
-            g_output_mixer_rx_volume,
-            data_tmp_buf.begin(), data_tmp_buf.begin() + fetch_bytes,
-            mix_tmp_buf.begin(), mix_tmp_buf.begin() + fetch_bytes, true);
-
-
         const auto fetch_samples = fetch_bytes / output_sample_bytes;
 #if DAC_OUTPUT_ENABLE
         g_job_mix_out_dac.require_samples = fetch_samples;
-        g_job_mix_out_dac.data_begin = mix_tmp_buf.begin();
-        g_job_mix_out_dac.data_end = mix_tmp_buf.begin() + fetch_bytes;
+        g_job_mix_out_dac.data_begin = data_tmp_buf.begin();
+        g_job_mix_out_dac.data_end = data_tmp_buf.begin() + fetch_bytes;
         g_job_mix_out_dac.set_pending();
 #endif
         if (g_output_device_charge_count)
