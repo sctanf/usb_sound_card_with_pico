@@ -11,7 +11,6 @@
 #include <tusb.h>
 #include "usb_descriptors.h"
 #include "device_config.h"
-#include "control_request.h"
 #include "streaming.h"
 #include "job_queue.h"
 
