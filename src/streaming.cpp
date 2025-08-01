@@ -15,7 +15,6 @@
 #include "job_queue.h"
 #include "streaming.h"
 #include "streaming_internal.h"
-#include "streaming_adc_in.h"
 #include "streaming_dac_out.h"
 
 #define STREAM_LOG(...) TU_LOG1("[STREAM] " __VA_ARGS__)

@@ -3,6 +3,7 @@
 #include <hardware/clocks.h>
 #include "support.h"
 #include "audio_i2s_32_out.pio.h"
+#include "pulse_out.pio.h"
 #include "streaming_internal.h"
 
 
