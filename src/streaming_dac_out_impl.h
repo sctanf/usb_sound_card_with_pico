@@ -4,7 +4,6 @@
 #include "support.h"
 #include "audio_i2s_32_out.pio.h"
 #include "pulse_out.pio.h"
-#include "streaming_internal.h"
 
 
 #define DAC_OUT_LOG(...)   TU_LOG1("[DAC_OUT] " __VA_ARGS__);
