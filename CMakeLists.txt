@@ -54,9 +54,6 @@ pico_enable_stdio_uart(${PROJECT} 0)
 pico_enable_stdio_usb(${PROJECT} 0)
 
 pico_generate_pio_header(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/pio/audio_i2s_32_out.pio)
-pico_generate_pio_header(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/pio/audio_i2s_32_in.pio)
-pico_generate_pio_header(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/pio/spdif_out.pio)
-pico_generate_pio_header(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/pio/spdif_in.pio)
 pico_generate_pio_header(${PROJECT} ${CMAKE_CURRENT_LIST_DIR}/pio/pulse_out.pio)
 
 # Example source
