@@ -67,7 +67,6 @@ target_sources(${PROJECT} PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/support.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/converter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/mixer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/spdifdefs.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/job_queue.cpp
 )
 

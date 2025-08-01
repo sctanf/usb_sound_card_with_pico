@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility>
-#include "spdifdefs.h"
 #include "device_config.h"
 #include "circular_buffer.h"
 
