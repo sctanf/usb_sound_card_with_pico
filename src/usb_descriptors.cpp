@@ -22,10 +22,10 @@
 char const *string_desc_arr[] ={
      (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
         "sctanf",                     // 1: Manufacturer
-        "PS48 III",               // 2: Product
+        "Pico PS48 III",               // 2: Product
         NULL,                   // 3: Serials, should use chip ID
-        "PS48 III Speakers",      // 4: Audio Interface
-        "PS48 III Control",       // 6: Audio Interface 
+        "Pico PS48 III Speakers",      // 4: Audio Interface
+        "Pico PS48 III Control",       // 6: Audio Interface 
         "Debug Serial Port"
 };
 enum DESCRIPTOR_STRING {
