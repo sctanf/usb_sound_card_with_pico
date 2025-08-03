@@ -39,6 +39,7 @@ std::array<uint8_t, 3> g_current_channels;
 void core1_loop();
 void tud_update_job();
 void audio_task();
+void bootsel_task();
 extern "C" __attribute__ ((weak)) void tusb_pico_reserve_buffer(uint8_t ep_adr, uint16_t size);
 
 /*------------- MAIN -------------*/
@@ -99,6 +100,7 @@ int main(void)
     {
         tud_update_job();
         audio_task();
+        bootsel_task();
     }
 
     multicore_launch_core1(core1_loop);
@@ -425,5 +427,37 @@ void audio_task(void)
         tud_audio_fb_set(feedback);
         start_ms = curr_ms;
     }
+}
 
+//--------------------------------------------------------------------+
+// BOOTSEL TASK
+//--------------------------------------------------------------------+
+
+// https://github.com/jasongaunt/rp2040-bootsel-reboot-example/
+#include "hardware/watchdog.h"
+#include "bsp/board_api.h"
+
+bool timer_interrupt(__unused struct repeating_timer *t)
+{
+    return true;
+}
+
+bool watchdog_enabled = false;
+struct repeating_timer timer;
+
+void bootsel_task(void)
+{
+    if (!watchdog_enabled)
+    {
+        watchdog_enable(500, 1); // enable watchdog now
+        watchdog_enabled = true;
+    }
+    add_repeating_timer_ms(400, timer_interrupt, NULL, &timer);
+    __wfi(); // if there are no irq, watchdog will also time out (ex. usb stopped receiving data or something?)
+    watchdog_update();
+    cancel_repeating_timer(&timer); // reset timer if something already interrupted in time
+    // TODO: this is causing issues if the device is connected but no audio streaming to it, which is nice in some instances but very bad in others
+    // maybe find another way
+    if (board_button_read())
+        while(1); // time out the watchdog
 }
