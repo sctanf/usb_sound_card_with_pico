@@ -38,6 +38,7 @@ std::array<uint8_t, 3> g_current_channels;
 
 void core1_loop();
 void tud_update_job();
+void audio_task();
 extern "C" __attribute__ ((weak)) void tusb_pico_reserve_buffer(uint8_t ep_adr, uint16_t size);
 
 /*------------- MAIN -------------*/
@@ -73,8 +74,6 @@ int main(void)
 
     set_sys_clock_khz(240000, true);
 
-    systick_hw->csr = 0b101;
-
     tusb_init();
 
     if(tusb_pico_reserve_buffer)
@@ -99,6 +98,7 @@ int main(void)
     while (true)
     {
         tud_update_job();
+        audio_task();
     }
 
     multicore_launch_core1(core1_loop);
@@ -331,14 +331,6 @@ bool tud_audio_tx_done_pre_load_cb(uint8_t rhport, uint8_t itf, uint8_t ep_in, u
     return false;
 }
 
-TU_ATTR_FAST_FUNC void tud_audio_feedback_interval_isr(uint8_t func_id, uint32_t frame_number, uint8_t interval_shift)
-{
-    uint32_t cycles = 0xffffff - systick_hw->cvr;
-    systick_hw->cvr = 0xffffff;
-
-    uint32_t feedback = tud_audio_feedback_update(0, cycles);
-}
-
 #endif
 
 #if USB_IF_CONTROL_ENABLE
@@ -404,5 +396,34 @@ bool device_control_request(uint8_t rhport, uint8_t stage, tusb_control_request_
 void tud_update_job(void)
 {
     tud_task(); // tinyusb device task
+}
+
+#define I2S_TARGET_LEVEL_MIN_US    1500
+#define I2S_TARGET_LEVEL_MAX_US    2000
+
+void audio_task(void)
+{
+    //1ms間隔でフィードバック
+    static uint32_t start_ms = 0;
+    uint32_t curr_ms = to_ms_since_boot(get_absolute_time());
+    if (curr_ms > start_ms)
+    {
+        // i dont know what this value is actually
+        int32_t avail = streaming::get_samples();
+        int32_t left = streaming::get_samples_left();
+
+        // TODO: hardcoded
+        uint32_t feedback = 48 << 16;
+        uint32_t min_feedback = 47 << 16;
+        uint32_t max_feedback = 49 << 16;
+
+        if (avail < left)
+            feedback = max_feedback;
+        else if (avail > left)
+            feedback = min_feedback;
+
+        tud_audio_fb_set(feedback);
+        start_ms = curr_ms;
+    }
 
 }

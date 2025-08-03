@@ -126,6 +126,15 @@ namespace streaming
         init_system();
     }
 
+    uint32_t get_samples()
+    {
+        return g_dac_out.get_buffer_available_samples();
+    }
+
+    uint32_t get_samples_left()
+    {
+        return g_dac_out.get_buffer_left_count();
+    }
 }
 
 #endif
