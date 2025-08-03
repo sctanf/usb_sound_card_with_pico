@@ -45,12 +45,6 @@ namespace streaming
         uint32_t require_samples;
         uint32_t result_size;
     };
-    struct job_mix_in_info : public job_queue::work_fn
-    {
-        uint64_t timeout;
-        uint32_t require_samples;
-        uint32_t buffer_size;
-    };
 
     template <typename T>
     PIO get_sm_pio(T);
@@ -65,8 +59,6 @@ namespace streaming
     template <>
     inline uint8_t get_sm_pio_index(PIO1_SM_TYPE) { return 1; }
 
-    static constexpr uint32_t task_priority_default = 16;
-
     static constexpr uint16_t device_buffer_duration = 8;
     static constexpr uint16_t output_mixing_processing_buffer_duration_per_cycle = device_buffer_duration / 4;
 
@@ -77,9 +69,6 @@ namespace streaming
     static uint32_t g_output_sampling_frequency = 0;
     static uint8_t g_output_resolution_bits = 0;
     static uint8_t g_device_output_channels = 0;
-    static uint8_t g_output_mixer_rx_volume = 0xff;
-    static uint8_t g_output_mixer_mixed_input_volume = 0xff;
-    static bool g_output_process_task_active;
     static uint8_t g_output_device_charge_count = 0;
 
     static job_mix_out_info g_job_mix_out = {};
@@ -92,34 +81,11 @@ namespace streaming
     static dac_out::buffer<device_buffer_duration * 32> g_dac_out_buffer;
 #endif
 
-#if USB_IF_CONTROL_ENABLE
-    struct debug_stats
-    {
-        uint32_t received_bytes;
-        uint32_t transfar_bytes;
-        struct
-        {
-            uint32_t src_left;
-            uint32_t input_left;
-            uint32_t processed_bytes;
-        } outmix;
-        struct
-        {
-            uint32_t processed_bytes;
-            uint32_t adc_in_samples;
-            uint32_t spdif_in_samples;
-        } inmix;
-    };
-    debug_stats g_debug_stats;
-#endif
-
     static void start_output_process_job();
     static void stop_output_process_job();
 
     void set_rx_format(uint32_t sampling_frequency, uint32_t bits, uint8_t channels)
     {
-//        g_output_device_charge_count = (device_buffer_duration / output_mixing_processing_buffer_duration_per_cycle) >> 1;
-
         if (g_output_sampling_frequency == sampling_frequency && g_output_resolution_bits == bits && g_device_output_channels == channels)
         {
             return;
@@ -128,9 +94,7 @@ namespace streaming
 
         stop_output_process_job();
 
-#if DAC_OUTPUT_ENABLE
         g_dac_out.stop();
-#endif
 
         g_output_sampling_frequency = sampling_frequency;
         g_output_resolution_bits = bits;
@@ -140,18 +104,14 @@ namespace streaming
         g_rx_stream_buffer_write_addr = g_rx_stream_buffer.begin();
         g_rx_stream_buffer_read_addr = g_rx_stream_buffer.begin();
 
-#if DAC_OUTPUT_ENABLE
         g_dac_out.set_format(sampling_frequency, bits, channels);
-#endif
 
         start_output_process_job();
     }
 
     void close_rx()
     {
-#if DAC_OUTPUT_ENABLE
         g_dac_out.stop();
-#endif
     }
 
     void get_rx_buffer_size(uint32_t &left, uint32_t &max_size)
@@ -176,40 +136,27 @@ namespace streaming
                 g_rx_stream_buffer_write_addr = g_rx_stream_buffer.begin();
         }
 
-#if USB_IF_CONTROL_ENABLE
-        g_debug_stats.received_bytes += g_rx_stream_buffer.distance(g_rx_stream_buffer_write_addr, write_addr);
-#endif
-
         g_job_mix_out.set_pending();
     }
 
     static void job_mix_output_init(job_queue::work *);
     static void job_mix_output_process(job_queue::work *);
     static void job_mix_output_dac_write(job_queue::work *);
-    static void job_mix_output_spdif_write(job_queue::work *);
 
     static void start_output_process_job()
     {
-        STREAM_LOG("start output process job\n");
-
-#if DAC_OUTPUT_ENABLE
         g_job_mix_out_dac.set_callback(job_mix_output_dac_write);
         g_job_mix_out_dac.activate();
-#endif
         g_job_mix_out.set_callback(job_mix_output_init);
         g_job_mix_out.activate();
         g_job_mix_out.set_pending();
     }
     static void stop_output_process_job()
     {
-        STREAM_LOG("stop output process job\n");
-
         g_job_mix_out.deactivate();
         g_job_mix_out.wait_done();
-#if DAC_OUTPUT_ENABLE
         g_job_mix_out_dac.deactivate();
         g_job_mix_out_dac.wait_done();
-#endif
     }
 
     static void job_mix_output_init(job_queue::work *)
@@ -229,9 +176,7 @@ namespace streaming
         const size_t buffer_size = g_job_mix_out.buffer_size;
 
         bool is_idle_write_job = true;
-#if DAC_OUTPUT_ENABLE
         is_idle_write_job &= g_job_mix_out_dac.is_idle();
-#endif
 
         if (!is_idle_write_job)
         {
@@ -245,10 +190,6 @@ namespace streaming
             return;
         }
 
-#if USB_IF_CONTROL_ENABLE
-        g_debug_stats.outmix.src_left = g_rx_stream_buffer.distance(g_rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr);
-#endif
-
         const auto rx_stream_buffer_write_addr = g_rx_stream_buffer_write_addr;
         auto read_addr = g_rx_stream_buffer_read_addr;
 
@@ -257,19 +198,16 @@ namespace streaming
             g_rx_stream_buffer.copy_to(rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr, data_tmp_buf.begin(), fetch_bytes);
 
         const auto fetch_samples = fetch_bytes / output_sample_bytes;
-#if DAC_OUTPUT_ENABLE
         g_job_mix_out_dac.require_samples = fetch_samples;
         g_job_mix_out_dac.data_begin = data_tmp_buf.begin();
         g_job_mix_out_dac.data_end = data_tmp_buf.begin() + fetch_bytes;
         g_job_mix_out_dac.set_pending();
-#endif
         if (g_output_device_charge_count)
             --g_output_device_charge_count;
 
         g_job_mix_out.set_pending_delay_us(100);
     }
 
-#if DAC_OUTPUT_ENABLE
     static void job_mix_output_dac_write(job_queue::work *)
     {
         auto &job = g_job_mix_out_dac;
@@ -287,13 +225,9 @@ namespace streaming
         if (g_output_device_charge_count == 0 && !g_dac_out.is_running())
             g_dac_out.start();
     }
-#endif
 
     static void init_system()
     {
-        STREAM_LOG("system initialize\n");
-
-#if DAC_OUTPUT_ENABLE
         auto i2s_out_program_offset = (uint8_t)pio_add_program(get_sm_pio(PIO0_SM_DAC_OUT), &audio_i2s_32_out_program);
         auto adc_clk_program_offset = (uint8_t)pio_add_program(get_sm_pio(PIO0_SM_DAC_OUT), &pulse_out_program);
         decltype(g_dac_out)::init_config dac_out_config = {
@@ -314,7 +248,6 @@ namespace streaming
             .dac_mute_pin = gpio_assign::dac_mute,
             .dma_irq_n = 0};
         g_dac_out.init(dac_out_config);
-#endif
 
         set_rx_format(48000, 16, 2);
 
@@ -322,17 +255,13 @@ namespace streaming
 
     void init()
     {
-        STREAM_LOG("initialize\n");
-
         const uint8_t core0mask = (1 << 0);
         const uint8_t core1mask = (1 << 1);
         const uint8_t core_both_mask = core0mask | core1mask;
 
         g_job_mix_out.set_affinity_mask(core_both_mask);
 
-#if DAC_OUTPUT_ENABLE
         g_job_mix_out_dac.set_affinity_mask(core_both_mask);
-#endif
 
         init_system();
     }
