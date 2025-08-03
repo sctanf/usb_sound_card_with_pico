@@ -1,3 +1,17 @@
+# USB/I2S interface for PS48 III
+
+Using a Raspberry Pi Pico as a USB interface to inject I2S into a PS48 III
+
+# Hardware
+
++10V must be injected to enable the system, see uploaded documentation
+
+The original I2S connection to the system controller is removed, and wired to the Pico instead.
+
+## Compiling
+Please use https://github.com/sctanf/tinyusb/tree/rp2040-fixes or tinyusb 0.17.0
+
+Based off [usb_sound_card_with_pico](https://github.com/rspg/usb_sound_card_with_pico)
 
 :point_right: [Japanese](./README_jp.md)
 
@@ -102,4 +116,5 @@ To building requires [Visual Studio 2022 with C# UWP application development](ht
 ## Disclaimer
 
 I am not responsible and cannot guarantee any damage or injury that may occur if you decide to undertake this project.
+
 Please keep in mind that this is a DIY project.
