@@ -21,11 +21,11 @@
 // array of pointer to string descriptors
 char const *string_desc_arr[] ={
      (const char[]){0x09, 0x04}, // 0: is supported language is English (0x0409)
-        "RSPG",                     // 1: Manufacturer
-        "Pico Audio",               // 2: Product
-        "000001",                   // 3: Serials, should use chip ID
-        "Pico Audio Speakers",      // 4: Audio Interface
-        "Pico Audio Control",       // 6: Audio Interface 
+        "sctanf",                     // 1: Manufacturer
+        "PS48 III",               // 2: Product
+        NULL,                   // 3: Serials, should use chip ID
+        "PS48 III Speakers",      // 4: Audio Interface
+        "PS48 III Control",       // 6: Audio Interface 
         "Debug Serial Port"
 };
 enum DESCRIPTOR_STRING {
@@ -342,6 +342,8 @@ TU_VERIFY_STATIC(std::size(msos2_descriptor_generator()) == MS_OS_20_DESC_LEN, "
 
 static uint16_t _desc_str[32];
 
+#include "bsp/board_api.h"
+
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
 extern "C" uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
@@ -354,6 +356,10 @@ extern "C" uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t lang
     {
         memcpy(&_desc_str[1], string_desc_arr[0], 2);
         chr_count = 1;
+    }
+    else if (index == STR_SERIAL)
+    {
+        chr_count = board_usb_get_serial(_desc_str + 1, 32);
     }
     else
     {
