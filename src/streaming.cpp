@@ -10,11 +10,8 @@
 
 #include "support.h"
 #include "circular_buffer.h"
-#include "job_queue.h"
 #include "streaming.h"
 #include "streaming_dac_out.h"
-
-#define STREAM_LOG(...) TU_LOG1("[STREAM] " __VA_ARGS__)
 
 namespace streaming
 {
@@ -33,19 +30,6 @@ namespace streaming
         PIO1_SM_SPDIF_IN_RAW,
     };
 
-    struct job_mix_out_info : public job_queue::work_fn
-    {
-        uint8_t sample_bytes;
-        size_t buffer_size;
-    };
-    struct job_mix_out_io_info : public job_queue::work_fn
-    {
-        uint8_t *data_begin;
-        uint8_t *data_end;
-        uint32_t require_samples;
-        uint32_t result_size;
-    };
-
     template <typename T>
     PIO get_sm_pio(T);
     template <>
@@ -62,27 +46,12 @@ namespace streaming
     static constexpr uint16_t device_buffer_duration = 8;
     static constexpr uint16_t output_mixing_processing_buffer_duration_per_cycle = device_buffer_duration / 4;
 
-    static circular_buffer<container_array<uint8_t, max_output_samples_1ms * device_buffer_duration * sizeof(uint32_t)>> g_rx_stream_buffer;
-    static uint8_t *g_rx_stream_buffer_write_addr;
-    static const uint8_t *g_rx_stream_buffer_read_addr;
-
     static uint32_t g_output_sampling_frequency = 0;
     static uint8_t g_output_resolution_bits = 0;
     static uint8_t g_device_output_channels = 0;
-    static uint8_t g_output_device_charge_count = 0;
 
-    static job_mix_out_info g_job_mix_out = {};
-#if DAC_OUTPUT_ENABLE
-    static job_mix_out_io_info g_job_mix_out_dac = {};
-#endif
-
-#if DAC_OUTPUT_ENABLE
     static dac_out g_dac_out;
-    static dac_out::buffer<device_buffer_duration * 32> g_dac_out_buffer;
-#endif
-
-    static void start_output_process_job();
-    static void stop_output_process_job();
+    static dac_out::buffer<device_buffer_duration> g_dac_out_buffer;
 
     void set_rx_format(uint32_t sampling_frequency, uint32_t bits, uint8_t channels)
     {
@@ -90,9 +59,6 @@ namespace streaming
         {
             return;
         }
-        STREAM_LOG("set rx format %u %u %u\n", sampling_frequency, bits, channels);
-
-        stop_output_process_job();
 
         g_dac_out.stop();
 
@@ -100,13 +66,7 @@ namespace streaming
         g_output_resolution_bits = bits;
         g_device_output_channels = channels;
 
-        g_rx_stream_buffer.resize(get_samples_duration_ms(device_buffer_duration, g_output_sampling_frequency, device_output_channels) * bits_to_bytes(g_output_resolution_bits));
-        g_rx_stream_buffer_write_addr = g_rx_stream_buffer.begin();
-        g_rx_stream_buffer_read_addr = g_rx_stream_buffer.begin();
-
         g_dac_out.set_format(sampling_frequency, bits, channels);
-
-        start_output_process_job();
     }
 
     void close_rx()
@@ -114,115 +74,23 @@ namespace streaming
         g_dac_out.stop();
     }
 
-    void get_rx_buffer_size(uint32_t &left, uint32_t &max_size)
-    {
-        left = g_rx_stream_buffer.distance(g_rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr);
-        max_size = g_rx_stream_buffer.size();
-    }
-
     void push_rx_data(size_t (*fn)(uint8_t *, size_t), size_t data_size)
     {
-        auto write_addr = g_rx_stream_buffer_write_addr;
-        auto data_size_saved = data_size;
-
-        while (data_size)
-        {
-            size_t sz = std::min(data_size, (size_t)(g_rx_stream_buffer.end() - g_rx_stream_buffer_write_addr));
-            fn(g_rx_stream_buffer_write_addr, sz);
-
-            data_size -= sz;
-            g_rx_stream_buffer_write_addr += sz;
-            if (g_rx_stream_buffer_write_addr >= g_rx_stream_buffer.end())
-                g_rx_stream_buffer_write_addr = g_rx_stream_buffer.begin();
-        }
-
-        g_job_mix_out.set_pending();
-    }
-
-    static void job_mix_output_init(job_queue::work *);
-    static void job_mix_output_process(job_queue::work *);
-    static void job_mix_output_dac_write(job_queue::work *);
-
-    static void start_output_process_job()
-    {
-        g_job_mix_out_dac.set_callback(job_mix_output_dac_write);
-        g_job_mix_out_dac.activate();
-        g_job_mix_out.set_callback(job_mix_output_init);
-        g_job_mix_out.activate();
-        g_job_mix_out.set_pending();
-    }
-    static void stop_output_process_job()
-    {
-        g_job_mix_out.deactivate();
-        g_job_mix_out.wait_done();
-        g_job_mix_out_dac.deactivate();
-        g_job_mix_out_dac.wait_done();
-    }
-
-    static void job_mix_output_init(job_queue::work *)
-    {
-        g_job_mix_out.sample_bytes = bits_to_bytes(g_output_resolution_bits);
-        g_job_mix_out.buffer_size = get_samples_duration_ms(output_mixing_processing_buffer_duration_per_cycle, g_output_sampling_frequency, device_output_channels) * g_job_mix_out.sample_bytes;
-        g_job_mix_out.set_callback(job_mix_output_process);
-        g_job_mix_out.set_pending();
-    }
-
-    static void job_mix_output_process(job_queue::work *)
-    {
         static std::array<uint8_t, max_output_samples_1ms * output_mixing_processing_buffer_duration_per_cycle * sizeof(uint32_t)> data_tmp_buf;
-        static std::array<uint8_t, max_output_samples_1ms * output_mixing_processing_buffer_duration_per_cycle * sizeof(uint32_t)> mix_tmp_buf;
+        fn(data_tmp_buf.begin(), data_size);
+        const auto fetch_samples = data_size / bits_to_bytes(g_output_resolution_bits);
 
-        const uint8_t output_sample_bytes = g_job_mix_out.sample_bytes;
-        const size_t buffer_size = g_job_mix_out.buffer_size;
-
-        bool is_idle_write_job = true;
-        is_idle_write_job &= g_job_mix_out_dac.is_idle();
-
-        if (!is_idle_write_job)
-        {
-            g_job_mix_out.set_pending_delay_us(100);
-            return;
-        }
-
-        if (g_rx_stream_buffer.distance(g_rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr) < buffer_size)
-        {
-            g_job_mix_out.set_pending_delay_us(200);
-            return;
-        }
-
-        const auto rx_stream_buffer_write_addr = g_rx_stream_buffer_write_addr;
-        auto read_addr = g_rx_stream_buffer_read_addr;
-
-        size_t fetch_bytes = buffer_size;
-        g_rx_stream_buffer_read_addr =
-            g_rx_stream_buffer.copy_to(rx_stream_buffer_write_addr, g_rx_stream_buffer_read_addr, data_tmp_buf.begin(), fetch_bytes);
-
-        const auto fetch_samples = fetch_bytes / output_sample_bytes;
-        g_job_mix_out_dac.require_samples = fetch_samples;
-        g_job_mix_out_dac.data_begin = data_tmp_buf.begin();
-        g_job_mix_out_dac.data_end = data_tmp_buf.begin() + fetch_bytes;
-        g_job_mix_out_dac.set_pending();
-        if (g_output_device_charge_count)
-            --g_output_device_charge_count;
-
-        g_job_mix_out.set_pending_delay_us(100);
-    }
-
-    static void job_mix_output_dac_write(job_queue::work *)
-    {
-        auto &job = g_job_mix_out_dac;
         if (g_dac_out.is_running())
         {
-            if (job.require_samples > g_dac_out.get_buffer_left_count())
+            if (fetch_samples > g_dac_out.get_buffer_left_count())
             {
-                job.set_pending_delay_us(200);
                 return;
             }
         }
 
-        job.result_size = g_dac_out.write(job.data_begin, job.data_end);
+        g_dac_out.write(data_tmp_buf.begin(), data_tmp_buf.begin() + data_size);
 
-        if (g_output_device_charge_count == 0 && !g_dac_out.is_running())
+        if (!g_dac_out.is_running())
             g_dac_out.start();
     }
 
@@ -255,14 +123,6 @@ namespace streaming
 
     void init()
     {
-        const uint8_t core0mask = (1 << 0);
-        const uint8_t core1mask = (1 << 1);
-        const uint8_t core_both_mask = core0mask | core1mask;
-
-        g_job_mix_out.set_affinity_mask(core_both_mask);
-
-        g_job_mix_out_dac.set_affinity_mask(core_both_mask);
-
         init_system();
     }
 

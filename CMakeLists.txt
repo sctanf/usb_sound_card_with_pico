@@ -51,7 +51,6 @@ target_sources(usb_sound_with_pico PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src/usb_descriptors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/streaming.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/support.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/job_queue.cpp
 )
 
 # Add the standard include files to the build

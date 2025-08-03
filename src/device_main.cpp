@@ -12,7 +12,6 @@
 #include "usb_descriptors.h"
 #include "device_config.h"
 #include "streaming.h"
-#include "job_queue.h"
 
 //--------------------------------------------------------------------+
 
@@ -38,8 +37,7 @@ std::array<uint8_t, ITF_NUM_AUDIO_TOTAL> g_current_resolutions;
 std::array<uint8_t, 3> g_current_channels;
 
 void core1_loop();
-void debug_cdc_job(job_queue::work*);
-void tud_update_job(job_queue::work*);
+void tud_update_job();
 extern "C" __attribute__ ((weak)) void tusb_pico_reserve_buffer(uint8_t ep_adr, uint16_t size);
 
 /*------------- MAIN -------------*/
@@ -94,32 +92,22 @@ int main(void)
 #endif
     }
 
-    job_queue::system::init();
-
 #if USB_IF_AUDIO_ENABLE
     streaming::init();
 #endif
 
-    const uint8_t core0mask = (1 << 0);
-    const uint8_t core1mask = (1 << 1);
-
-    static job_queue::work_fn usb_job;
-    usb_job.set_affinity_mask(core0mask|core1mask);
-    usb_job.set_callback(tud_update_job);
-    usb_job.activate();
-    usb_job.set_pending();
+    while (true)
+    {
+        tud_update_job();
+    }
 
     multicore_launch_core1(core1_loop);
-    while (true)
-        job_queue::system::execute();
 
     return 0;
 }
 
 void core1_loop()
 {
-    while(true)
-        job_queue::system::execute();
 }
 
 //--------------------------------------------------------------------+
@@ -413,9 +401,8 @@ bool device_control_request(uint8_t rhport, uint8_t stage, tusb_control_request_
 // AUDIO Task
 //--------------------------------------------------------------------+
 
-void tud_update_job(job_queue::work *job)
+void tud_update_job(void)
 {
     tud_task(); // tinyusb device task
 
-    job->set_pending();
 }
