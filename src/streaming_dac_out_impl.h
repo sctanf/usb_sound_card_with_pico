@@ -31,7 +31,7 @@ namespace streaming
             &get_pio(m_config.i2s_out_pio)->txf[m_config.i2s_out_sm],
             0,
             false);
-        dma_irqn_set_channel_enabled(m_config.dma_irq_n, m_dma_ch, true);
+//        dma_irqn_set_channel_enabled(m_config.dma_irq_n, m_dma_ch, true);
 
         m_dma_control_blocks[0] = config.buffer_begin;
         m_stream_buffer = { m_config.buffer_begin, m_config.buffer_end };
