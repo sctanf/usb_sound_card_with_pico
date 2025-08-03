@@ -414,10 +414,10 @@ void audio_task(void)
         int32_t avail = streaming::get_samples();
         int32_t left = streaming::get_samples_left();
 
-        // TODO: hardcoded
-        uint32_t feedback = 48 << 16;
-        uint32_t min_feedback = 47 << 16;
-        uint32_t max_feedback = 49 << 16;
+        uint32_t sample_rate = g_current_sample_rates[UAC2_ENTITY_USB_INPUT_CLOCK - UAC2_ENTITY_CLOCK_START];
+        uint32_t feedback = (sample_rate / 1000) << 16;
+        uint32_t min_feedback = (sample_rate / 1000 - 1) << 16;
+        uint32_t max_feedback = (sample_rate / 1000 + 1) << 16;
 
         if (avail < left)
             feedback = max_feedback;
